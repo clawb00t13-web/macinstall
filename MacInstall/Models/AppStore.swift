@@ -215,19 +215,27 @@ class AppStore: ObservableObject {
             defer { isInstalling = false }
             let enabledApps = apps.filter { profile[$0.id] == true && installStatus[$0.id] == .notInstalled }
 
+            // Snapshot brew list once before the loop for checkAppInstalled
+            let brewListBefore = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
+            var brewInstalled = Set(brewListBefore.components(separatedBy: "\n")
+                .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
+
             for app in enabledApps {
                 installStatus[app.id] = .installing
+
                 if let cask = app.brewCask {
                     _ = await runCommand("/opt/homebrew/bin/brew", args: ["install", "--cask", cask])
-                    let brewOutput = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
-                    let brewInstalled = Set(brewOutput.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
-                    installStatus[app.id] = brewInstalled.contains(cask) ? .installed : .notInstalled
+                    // Refresh brew list so checkAppInstalled has accurate data
+                    let refreshed = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
+                    brewInstalled = Set(refreshed.components(separatedBy: "\n")
+                        .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
                 } else if let masId = app.masId {
                     _ = await runCommand("/usr/local/bin/mas", args: ["install", "\(masId)"])
-                    installStatus[app.id] = .installed
-                } else {
-                    installStatus[app.id] = .notInstalled
                 }
+
+                // Verify via the same thorough check used by detectInstalled —
+                // confirms the .app actually exists on disk, not just brew's registry.
+                installStatus[app.id] = await checkAppInstalled(app, brewInstalled: brewInstalled)
             }
         }
     }
