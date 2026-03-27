@@ -1,12 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function Home() {
   const router = useRouter()
   const supabase = createClient()
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState<'google' | 'apple' | null>(null)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -15,12 +17,19 @@ export default function Home() {
   }, [router, supabase])
 
   const signInWith = async (provider: 'google' | 'apple') => {
-    await supabase.auth.signInWithOAuth({
+    setError(null)
+    setLoading(provider)
+    const origin = process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin
+    const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: process.env.NEXT_PUBLIC_SITE_URL + '/auth/callback',
+        redirectTo: `${origin}/auth/callback`,
       },
     })
+    if (error) {
+      setError(error.message)
+      setLoading(null)
+    }
   }
 
   return (
@@ -32,23 +41,27 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col gap-3 w-64">
-        {/* Google */}
         <button
           onClick={() => signInWith('google')}
-          className="flex items-center gap-3 bg-white text-black font-medium px-5 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+          disabled={!!loading}
+          className="flex items-center gap-3 bg-white text-black font-medium px-5 py-3 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <GoogleIcon />
-          Sign in with Google
+          {loading === 'google' ? 'Redirecting…' : 'Sign in with Google'}
         </button>
 
-        {/* Apple — wired up but visually secondary until Apple SSO is fully configured */}
         <button
           onClick={() => signInWith('apple')}
-          className="flex items-center gap-3 bg-[#1a1a1a] text-white font-medium px-5 py-3 rounded-lg border border-white/10 hover:bg-[#2a2a2a] transition-colors"
+          disabled={!!loading}
+          className="flex items-center gap-3 bg-[#1a1a1a] text-white font-medium px-5 py-3 rounded-lg border border-white/10 hover:bg-[#2a2a2a] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <span className="text-lg leading-none">&#63743;</span>
-          Sign in with Apple
+          {loading === 'apple' ? 'Redirecting…' : 'Sign in with Apple'}
         </button>
+
+        {error && (
+          <p className="text-red-400 text-sm text-center">{error}</p>
+        )}
       </div>
     </main>
   )
