@@ -30,10 +30,40 @@ struct ContentView: View {
 
 struct MenuBarView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var authService: AuthService
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 0) {
+            // User identity bar
+            if let session = authService.session {
+                HStack(spacing: 8) {
+                    UserAvatarView(url: session.avatarURL)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(session.fullName ?? "Signed in")
+                            .font(.caption.weight(.medium))
+                            .lineLimit(1)
+                        Text("Synced to cloud")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button {
+                        authService.signOut()
+                    } label: {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Sign out")
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+
+                Divider()
+            }
+
             Button {
                 openWindow(id: "main")
                 NSApp.activate(ignoringOtherApps: true)
@@ -115,5 +145,37 @@ struct MenuBarView: View {
             .buttonStyle(.plain)
         }
         .frame(width: 280)
+    }
+}
+
+// MARK: - User Avatar
+
+private struct UserAvatarView: View {
+    let url: String?
+
+    var body: some View {
+        Group {
+            if let urlString = url, let imageURL = URL(string: urlString) {
+                AsyncImage(url: imageURL) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image.resizable().scaledToFill()
+                    default:
+                        placeholderIcon
+                    }
+                }
+            } else {
+                placeholderIcon
+            }
+        }
+        .frame(width: 28, height: 28)
+        .clipShape(Circle())
+        .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+    }
+
+    private var placeholderIcon: some View {
+        Image(systemName: "person.crop.circle.fill")
+            .resizable()
+            .foregroundStyle(.secondary)
     }
 }

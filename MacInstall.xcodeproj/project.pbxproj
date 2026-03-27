@@ -17,6 +17,10 @@
 		EA3588A397804B4685B3ACC1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924C3158E8504B238266A93D /* SettingsView.swift */; };
 		CEF77C6BEB834FFBA9D7D41A /* CLIRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E0D70A2E4D44C6A9C87468E /* CLIRunner.swift */; };
 		015448F88E4344E4B03A0570 /* AppDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AA08B7B666E408F8AA8DDF5 /* AppDetector.swift */; };
+		AA01CC01AA014CC0AA01CC01 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA01CC01FA014CC0FA01CC01 /* AuthService.swift */; };
+		AA02CC02AA024CC0AA02CC02 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */; };
+		AA03CC03AA034CC0AA03CC03 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */; };
+		AA04CC04AA044CC0AA04CC04 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA04CC04FA044CC0FA04CC04 /* AuthView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +36,10 @@
 		4E0D70A2E4D44C6A9C87468E /* CLIRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIRunner.swift; sourceTree = "<group>"; };
 		1AA08B7B666E408F8AA8DDF5 /* AppDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDetector.swift; sourceTree = "<group>"; };
 		668F422EDA724FAD8CEBDD3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FA01CC01FA014CC0FA01CC01 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		FA04CC04FA044CC0FA04CC04 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +92,7 @@
 				7C8131D30E9A4ECAABAC6BC9 /* AppListView.swift */,
 				22C127A57622410DBC26BA60 /* StarterPacksView.swift */,
 				924C3158E8504B238266A93D /* SettingsView.swift */,
+				FA04CC04FA044CC0FA04CC04 /* AuthView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -93,6 +102,9 @@
 			children = (
 				4E0D70A2E4D44C6A9C87468E /* CLIRunner.swift */,
 				1AA08B7B666E408F8AA8DDF5 /* AppDetector.swift */,
+				FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */,
+				FA01CC01FA014CC0FA01CC01 /* AuthService.swift */,
+				FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -176,6 +188,10 @@
 				EA3588A397804B4685B3ACC1 /* SettingsView.swift in Sources */,
 				CEF77C6BEB834FFBA9D7D41A /* CLIRunner.swift in Sources */,
 				015448F88E4344E4B03A0570 /* AppDetector.swift in Sources */,
+				AA02CC02AA024CC0AA02CC02 /* SupabaseConfig.swift in Sources */,
+				AA01CC01AA014CC0AA01CC01 /* AuthService.swift in Sources */,
+				AA03CC03AA034CC0AA03CC03 /* SupabaseService.swift in Sources */,
+				AA04CC04AA044CC0AA04CC04 /* AuthView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

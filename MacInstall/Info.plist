@@ -28,5 +28,16 @@
 	<string>Copyright © 2024. All rights reserved.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.macinstall.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>macinstall</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

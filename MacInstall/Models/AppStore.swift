@@ -20,6 +20,8 @@ class AppStore: ObservableObject {
     @Published var isDetecting: Bool = false
     @Published var isInstalling: Bool = false
 
+    var authService: AuthService? = nil
+
     private var brewInstalledCasks: Set<String> = []
 
     init() {
@@ -70,6 +72,16 @@ class AppStore: ObservableObject {
         }
         let yaml = lines.joined(separator: "\n") + "\n"
         try? yaml.write(to: url, atomically: true, encoding: .utf8)
+
+        if cloudSyncEnabled, let session = authService?.session {
+            Task { try? await SupabaseService().upsertProfile(accessToken: session.accessToken, userId: session.userId, yaml: yaml) }
+        }
+    }
+
+    func loadFromCloud(accessToken: String, userId: String) async {
+        let yaml = (try? await SupabaseService().fetchProfile(accessToken: accessToken)) ?? ""
+        guard !yaml.isEmpty else { return }
+        parseYAML(yaml)
     }
 
     private func parseYAML(_ content: String) {
