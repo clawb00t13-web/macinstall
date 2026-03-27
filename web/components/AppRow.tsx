@@ -24,10 +24,11 @@ const BADGE: Record<string, { label: string; className: string }> = {
 interface AppRowProps {
   app: App
   enabled: boolean
+  installed: boolean
   onToggle: (id: string, value: boolean) => void
 }
 
-export default function AppRow({ app, enabled, onToggle }: AppRowProps) {
+export default function AppRow({ app, enabled, installed, onToggle }: AppRowProps) {
   const method = getInstallMethod(app)
   const badge = method ? BADGE[method] : null
   const letter = app.name.charAt(0).toUpperCase()
@@ -44,6 +45,11 @@ export default function AppRow({ app, enabled, onToggle }: AppRowProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[#f5f5f5] text-sm font-medium truncate">{app.name}</span>
+          {installed && (
+            <span className="bg-green-900/50 text-green-400 text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0">
+              ✓ Installed
+            </span>
+          )}
           {badge && (
             <span className={`${badge.className} text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0`}>
               {badge.label}

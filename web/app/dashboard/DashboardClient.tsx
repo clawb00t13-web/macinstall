@@ -16,11 +16,13 @@ interface DashboardClientProps {
   userId: string
   userEmail: string | undefined
   initialYaml: string
+  installedAppIds: string[]
 }
 
 type Tab = 'apps' | 'packs'
 
-export default function DashboardClient({ userId, userEmail, initialYaml }: DashboardClientProps) {
+export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds }: DashboardClientProps) {
+  const installedSet = new Set(installedAppIds)
   const [tab, setTab] = useState<Tab>('apps')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
@@ -136,6 +138,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml }: Dash
                     key={app.id}
                     app={app}
                     enabled={!!profile[app.id]}
+                    installed={installedSet.has(app.id)}
                     onToggle={handleToggle}
                   />
                 ))

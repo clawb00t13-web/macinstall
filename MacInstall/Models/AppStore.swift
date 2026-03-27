@@ -121,6 +121,18 @@ class AppStore: ObservableObject {
             let status = await checkAppInstalled(app, brewInstalled: brewInstalled)
             installStatus[app.id] = status
         }
+
+        // Sync installed app IDs to cloud so the website can reflect them
+        if let session = authService?.session {
+            let installedIds = installStatus.compactMap { id, status in
+                status == .installed ? id : nil
+            }
+            Task { try? await SupabaseService().upsertInstalledApps(
+                accessToken: session.accessToken,
+                userId: session.userId,
+                appIds: installedIds
+            )}
+        }
     }
 
     private func checkAppInstalled(_ app: CatalogApp, brewInstalled: Set<String>) async -> InstallStatus {
