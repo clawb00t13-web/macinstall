@@ -1,0 +1,218 @@
+# Content Creator Setup - Mac Auto-Installer Starter Pack
+# Optimized for video creators, podcasters, streamers, and writers
+# Install: macinstall apply content-creator-setup.yaml
+
+profile:
+  name: Content Creator Setup
+  description: Video editing, audio production, writing, and publishing tools for content creators
+  version: "1.0"
+  tags: [content, video, audio, writing, streaming]
+
+# ── Prerequisites ────────────────────────────────────────────────────────────
+prerequisites:
+  - name: Homebrew
+    check: brew --version
+    install: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    required: true
+
+# ── Applications (Homebrew Cask) ─────────────────────────────────────────────
+apps:
+  video_editing:
+    - name: Final Cut Pro
+      mas_id: 424389933
+      method: mas
+      note: "One-time purchase required"
+
+    - name: DaVinci Resolve
+      cask: davinci-resolve
+      method: brew_cask
+      optional: true
+      note: "Free version available; Studio version requires license"
+
+    - name: iMovie
+      mas_id: 408981434
+      method: mas
+      optional: true
+      note: "Free - good for beginners"
+
+    - name: HandBrake (video converter)
+      cask: handbrake
+      method: brew_cask
+
+    - name: IINA (video player)
+      cask: iina
+      method: brew_cask
+
+  audio_production:
+    - name: Logic Pro
+      mas_id: 634148309
+      method: mas
+      note: "One-time purchase required"
+
+    - name: GarageBand
+      mas_id: 682658836
+      method: mas
+      optional: true
+      note: "Free - good for beginners"
+
+    - name: Audacity
+      cask: audacity
+      method: brew_cask
+      optional: true
+      note: "Free open-source audio editor"
+
+    - name: Loopback (audio routing)
+      cask: loopback
+      method: brew_cask
+      optional: true
+
+    - name: Krisp (noise cancellation)
+      cask: krisp
+      method: brew_cask
+      optional: true
+
+  streaming:
+    - name: OBS Studio
+      cask: obs
+      method: brew_cask
+      optional: true
+
+    - name: Ecamm Live
+      cask: ecamm-live
+      method: brew_cask
+      optional: true
+
+  screen_recording:
+    - name: Loom
+      cask: loom
+      method: brew_cask
+
+    - name: CleanShot X
+      cask: cleanshot
+      method: brew_cask
+      optional: true
+
+    - name: Screenflow
+      mas_id: 1309726384
+      method: mas
+      optional: true
+
+  writing_and_notes:
+    - name: Notion
+      cask: notion
+      method: brew_cask
+
+    - name: Obsidian
+      cask: obsidian
+      method: brew_cask
+      optional: true
+
+    - name: iA Writer
+      mas_id: 775737590
+      method: mas
+      optional: true
+
+    - name: Ulysses
+      mas_id: 1225570693
+      method: mas
+      optional: true
+
+  graphics_and_thumbnails:
+    - name: Canva
+      mas_id: 897446215
+      method: mas
+
+    - name: Pixelmator Pro
+      mas_id: 1289583905
+      method: mas
+      optional: true
+
+    - name: Adobe Creative Cloud
+      cask: adobe-creative-cloud
+      method: brew_cask
+      optional: true
+
+  podcasting:
+    - name: Riverside.fm
+      cask: riverside
+      method: brew_cask
+      optional: true
+      note: "Remote podcast recording"
+
+    - name: Descript
+      cask: descript
+      method: brew_cask
+      optional: true
+      note: "Text-based video/audio editing"
+
+    - name: Hindenburg Journalist
+      cask: hindenburg-journalist
+      method: brew_cask
+      optional: true
+
+  publishing_and_social:
+    - name: Buffer
+      cask: buffer
+      method: brew_cask
+      optional: true
+
+    - name: Later
+      cask: later
+      method: brew_cask
+      optional: true
+
+  productivity:
+    - name: Rectangle
+      cask: rectangle
+      method: brew_cask
+
+    - name: 1Password
+      cask: 1password
+      method: brew_cask
+
+    - name: Dropbox
+      cask: dropbox
+      method: brew_cask
+      optional: true
+
+    - name: Google Drive
+      cask: google-drive
+      method: brew_cask
+
+# ── CLI Tools ────────────────────────────────────────────────────────────────
+cli_tools:
+  video_processing:
+    - name: ffmpeg
+      formula: ffmpeg
+      method: brew
+      note: "Essential video/audio conversion and processing"
+
+    - name: yt-dlp (video downloader)
+      formula: yt-dlp
+      method: brew
+
+  image_optimization:
+    - name: imagemagick
+      formula: imagemagick
+      method: brew
+
+# ── macOS System Preferences ─────────────────────────────────────────────────
+system_prefs:
+  - description: Disable automatic spelling correction (useful for writing)
+    command: defaults write NSGlobalDomain NSAutomaticSpellingCorrectionEnabled -bool false
+  - description: Enable dark mode
+    command: osascript -e 'tell app "System Events" to tell appearance preferences to set dark mode to true'
+  - description: Show all file extensions in Finder
+    command: defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# ── Recommendations ───────────────────────────────────────────────────────────
+recommendations:
+  if_installed:
+    - app: Final Cut Pro
+      suggest: [logic-pro, handbrake, compressor]
+    - app: Logic Pro
+      suggest: [loopback, krisp, garageband]
+    - app: OBS Studio
+      suggest: [loopback, krisp]
+    - app: Loom
+      suggest: [cleanshot, notion]

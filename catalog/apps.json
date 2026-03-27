@@ -1,0 +1,1065 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-03-27",
+  "apps": [
+    {
+      "id": "visual-studio-code",
+      "name": "Visual Studio Code",
+      "brew_cask": "visual-studio-code",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "editor"],
+      "description": "Lightweight but powerful source code editor"
+    },
+    {
+      "id": "cursor",
+      "name": "Cursor",
+      "brew_cask": "cursor",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "editor", "ai"],
+      "description": "AI-first code editor built on VS Code"
+    },
+    {
+      "id": "iterm2",
+      "name": "iTerm2",
+      "brew_cask": "iterm2",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "terminal"],
+      "description": "Replacement for Terminal with powerful features"
+    },
+    {
+      "id": "warp",
+      "name": "Warp",
+      "brew_cask": "warp",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "terminal", "ai"],
+      "description": "Modern AI-powered terminal"
+    },
+    {
+      "id": "git",
+      "name": "Git",
+      "brew_formula": "git",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "cli"],
+      "description": "Distributed version control system"
+    },
+    {
+      "id": "github-desktop",
+      "name": "GitHub Desktop",
+      "brew_cask": "github",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "git"],
+      "description": "Simple collaboration from your desktop"
+    },
+    {
+      "id": "tower",
+      "name": "Tower",
+      "brew_cask": "tower",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "git"],
+      "description": "The most powerful Git client for Mac"
+    },
+    {
+      "id": "homebrew",
+      "name": "Homebrew",
+      "brew_formula": null,
+      "brew_cask": null,
+      "mas_id": null,
+      "dmg_url": null,
+      "install_script": "/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+      "categories": ["developer", "cli"],
+      "description": "The missing package manager for macOS"
+    },
+    {
+      "id": "node",
+      "name": "Node.js",
+      "brew_formula": "node",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "runtime"],
+      "description": "JavaScript runtime built on Chrome's V8"
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "brew_formula": "python",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "runtime", "data-science"],
+      "description": "Interpreted, high-level programming language"
+    },
+    {
+      "id": "docker",
+      "name": "Docker Desktop",
+      "brew_cask": "docker",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "devops"],
+      "description": "Containerization platform for developers"
+    },
+    {
+      "id": "postman",
+      "name": "Postman",
+      "brew_cask": "postman",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "api"],
+      "description": "API platform for building and testing APIs"
+    },
+    {
+      "id": "insomnia",
+      "name": "Insomnia",
+      "brew_cask": "insomnia",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "api"],
+      "description": "Open-source API client and design platform"
+    },
+    {
+      "id": "tableplus",
+      "name": "TablePlus",
+      "brew_cask": "tableplus",
+      "mas_id": 1247817819,
+      "dmg_url": null,
+      "categories": ["developer", "database"],
+      "description": "Modern, native database management tool"
+    },
+    {
+      "id": "sequel-pro",
+      "name": "Sequel Pro",
+      "brew_cask": "sequel-pro",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "database"],
+      "description": "Fast, easy MySQL/MariaDB database management"
+    },
+    {
+      "id": "redis-insight",
+      "name": "RedisInsight",
+      "brew_cask": "redisinsight",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "database"],
+      "description": "Visual tool for Redis databases"
+    },
+    {
+      "id": "sourcetree",
+      "name": "Sourcetree",
+      "brew_cask": "sourcetree",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "git"],
+      "description": "Free Git GUI for Mac"
+    },
+    {
+      "id": "jetbrains-toolbox",
+      "name": "JetBrains Toolbox",
+      "brew_cask": "jetbrains-toolbox",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "editor"],
+      "description": "Manage all JetBrains IDEs in one place"
+    },
+    {
+      "id": "xcode",
+      "name": "Xcode",
+      "brew_cask": null,
+      "mas_id": 497799835,
+      "dmg_url": null,
+      "categories": ["developer", "editor", "ios"],
+      "description": "Apple's IDE for macOS, iOS, and more"
+    },
+    {
+      "id": "sf-symbols",
+      "name": "SF Symbols",
+      "brew_cask": null,
+      "mas_id": null,
+      "dmg_url": "https://developer.apple.com/sf-symbols/",
+      "categories": ["developer", "designer", "ios"],
+      "description": "Apple's icon library for developers"
+    },
+    {
+      "id": "proxyman",
+      "name": "Proxyman",
+      "brew_cask": "proxyman",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "network"],
+      "description": "Native macOS app for HTTP/HTTPS debugging"
+    },
+    {
+      "id": "charles",
+      "name": "Charles Proxy",
+      "brew_cask": "charles",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "network"],
+      "description": "HTTP proxy and monitor for debugging"
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "brew_cask": "figma",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer", "design"],
+      "description": "Collaborative interface design tool"
+    },
+    {
+      "id": "sketch",
+      "name": "Sketch",
+      "brew_cask": "sketch",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer", "design"],
+      "description": "Digital design toolkit for Mac"
+    },
+    {
+      "id": "affinity-designer",
+      "name": "Affinity Designer",
+      "brew_cask": null,
+      "mas_id": 824171161,
+      "dmg_url": null,
+      "categories": ["designer", "design"],
+      "description": "Professional vector graphic design software"
+    },
+    {
+      "id": "affinity-photo",
+      "name": "Affinity Photo",
+      "brew_cask": null,
+      "mas_id": 824183456,
+      "dmg_url": null,
+      "categories": ["designer", "photo"],
+      "description": "Professional photo editing software"
+    },
+    {
+      "id": "adobe-creative-cloud",
+      "name": "Adobe Creative Cloud",
+      "brew_cask": "adobe-creative-cloud",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer", "creative"],
+      "description": "Hub for all Adobe creative apps"
+    },
+    {
+      "id": "pixelmator-pro",
+      "name": "Pixelmator Pro",
+      "brew_cask": null,
+      "mas_id": 1289583905,
+      "dmg_url": null,
+      "categories": ["designer", "photo"],
+      "description": "Professional image editing for Mac"
+    },
+    {
+      "id": "canva",
+      "name": "Canva",
+      "brew_cask": null,
+      "mas_id": 897446215,
+      "dmg_url": null,
+      "categories": ["designer", "content-creator"],
+      "description": "Design anything with easy drag-and-drop tools"
+    },
+    {
+      "id": "principle",
+      "name": "Principle",
+      "brew_cask": null,
+      "mas_id": 788839335,
+      "dmg_url": null,
+      "categories": ["designer", "prototyping"],
+      "description": "Animated design tool for app prototypes"
+    },
+    {
+      "id": "zeplin",
+      "name": "Zeplin",
+      "brew_cask": "zeplin",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer", "developer"],
+      "description": "Design handoff and style guide tool"
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "brew_cask": "notion",
+      "mas_id": 1559269364,
+      "dmg_url": null,
+      "categories": ["productivity", "notes"],
+      "description": "All-in-one workspace for notes and collaboration"
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "brew_cask": "obsidian",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "notes"],
+      "description": "Knowledge base that works on local Markdown files"
+    },
+    {
+      "id": "bear",
+      "name": "Bear",
+      "brew_cask": null,
+      "mas_id": 1091189122,
+      "dmg_url": null,
+      "categories": ["productivity", "notes"],
+      "description": "Beautiful, flexible writing app for notes"
+    },
+    {
+      "id": "1password",
+      "name": "1Password",
+      "brew_cask": "1password",
+      "mas_id": 1333542190,
+      "dmg_url": null,
+      "categories": ["productivity", "security"],
+      "description": "Password manager and secure digital wallet"
+    },
+    {
+      "id": "bitwarden",
+      "name": "Bitwarden",
+      "brew_cask": "bitwarden",
+      "mas_id": 1352778147,
+      "dmg_url": null,
+      "categories": ["productivity", "security"],
+      "description": "Open source password manager"
+    },
+    {
+      "id": "alfred",
+      "name": "Alfred",
+      "brew_cask": "alfred",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "launcher"],
+      "description": "Productivity app with search and custom workflows"
+    },
+    {
+      "id": "raycast",
+      "name": "Raycast",
+      "brew_cask": "raycast",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "launcher", "ai"],
+      "description": "Blazing fast, totally extendable launcher"
+    },
+    {
+      "id": "arc",
+      "name": "Arc Browser",
+      "brew_cask": "arc",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "browser"],
+      "description": "The browser that thinks differently"
+    },
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "brew_cask": "google-chrome",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "browser"],
+      "description": "Fast, secure web browser by Google"
+    },
+    {
+      "id": "firefox",
+      "name": "Firefox",
+      "brew_cask": "firefox",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "browser"],
+      "description": "Fast, private and safe web browser"
+    },
+    {
+      "id": "brave",
+      "name": "Brave Browser",
+      "brew_cask": "brave-browser",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "browser"],
+      "description": "Privacy-focused browser with built-in ad blocking"
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "brew_cask": "slack",
+      "mas_id": 803453959,
+      "dmg_url": null,
+      "categories": ["productivity", "communication"],
+      "description": "Business communication platform"
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "brew_cask": "discord",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "communication"],
+      "description": "Voice, video, and text communication platform"
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "brew_cask": "telegram",
+      "mas_id": 747648890,
+      "dmg_url": null,
+      "categories": ["productivity", "communication"],
+      "description": "Fast, secure, cloud-based messaging"
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "brew_cask": "zoom",
+      "mas_id": 617349475,
+      "dmg_url": null,
+      "categories": ["productivity", "communication"],
+      "description": "Video conferencing and meetings platform"
+    },
+    {
+      "id": "linear",
+      "name": "Linear",
+      "brew_cask": "linear-linear",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "project-management"],
+      "description": "Streamlined project management for software teams"
+    },
+    {
+      "id": "things3",
+      "name": "Things 3",
+      "brew_cask": null,
+      "mas_id": 904280696,
+      "dmg_url": null,
+      "categories": ["productivity", "task-management"],
+      "description": "Award-winning personal task manager"
+    },
+    {
+      "id": "todoist",
+      "name": "Todoist",
+      "brew_cask": "todoist",
+      "mas_id": 585829637,
+      "dmg_url": null,
+      "categories": ["productivity", "task-management"],
+      "description": "The to-do list to organize work and life"
+    },
+    {
+      "id": "cleaner-one-pro",
+      "name": "CleanMyMac X",
+      "brew_cask": "cleanmymac",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "macOS system cleaner and performance optimizer"
+    },
+    {
+      "id": "bartender",
+      "name": "Bartender",
+      "brew_cask": "bartender",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Organize your Mac menu bar apps"
+    },
+    {
+      "id": "rectangle",
+      "name": "Rectangle",
+      "brew_cask": "rectangle",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "window-management"],
+      "description": "Move and resize windows in macOS using keyboard shortcuts"
+    },
+    {
+      "id": "magnet",
+      "name": "Magnet",
+      "brew_cask": null,
+      "mas_id": 441258766,
+      "dmg_url": null,
+      "categories": ["productivity", "window-management"],
+      "description": "Keep your workspace organized with window snapping"
+    },
+    {
+      "id": "mimestream",
+      "name": "Mimestream",
+      "brew_cask": "mimestream",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "email"],
+      "description": "Native Gmail client for macOS"
+    },
+    {
+      "id": "spark",
+      "name": "Spark Mail",
+      "brew_cask": null,
+      "mas_id": 1176895641,
+      "dmg_url": null,
+      "categories": ["productivity", "email"],
+      "description": "Smart email app with AI features"
+      },
+    {
+      "id": "notion-calendar",
+      "name": "Notion Calendar",
+      "brew_cask": "notion-calendar",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "calendar"],
+      "description": "Powerful calendar app integrating with Notion"
+    },
+    {
+      "id": "fantastical",
+      "name": "Fantastical",
+      "brew_cask": "fantastical",
+      "mas_id": 975937182,
+      "dmg_url": null,
+      "categories": ["productivity", "calendar"],
+      "description": "Natural language calendar and reminders"
+    },
+    {
+      "id": "setapp",
+      "name": "Setapp",
+      "brew_cask": "setapp",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Subscription service for Mac and iOS apps"
+    },
+    {
+      "id": "screenflow",
+      "name": "ScreenFlow",
+      "brew_cask": null,
+      "mas_id": 1475796517,
+      "dmg_url": null,
+      "categories": ["content-creator", "video"],
+      "description": "Screen recording and video editing for Mac"
+    },
+    {
+      "id": "loom",
+      "name": "Loom",
+      "brew_cask": "loom",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "video"],
+      "description": "Async video messaging for work"
+    },
+    {
+      "id": "davinci-resolve",
+      "name": "DaVinci Resolve",
+      "brew_cask": "davinci-resolve",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "video"],
+      "description": "Professional video editing, color, and audio"
+    },
+    {
+      "id": "final-cut-pro",
+      "name": "Final Cut Pro",
+      "brew_cask": null,
+      "mas_id": 424389933,
+      "dmg_url": null,
+      "categories": ["content-creator", "video"],
+      "description": "Apple's professional video editing software"
+    },
+    {
+      "id": "obs",
+      "name": "OBS Studio",
+      "brew_cask": "obs",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "streaming"],
+      "description": "Free and open source streaming and recording"
+    },
+    {
+      "id": "cleanshot-x",
+      "name": "CleanShot X",
+      "brew_cask": "cleanshot",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "productivity", "screenshot"],
+      "description": "Screenshot and screen recording tool for Mac"
+    },
+    {
+      "id": "imageoptim",
+      "name": "ImageOptim",
+      "brew_cask": "imageoptim",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "designer", "image"],
+      "description": "Lossless image compression and optimization"
+    },
+    {
+      "id": "handbrake",
+      "name": "HandBrake",
+      "brew_cask": "handbrake",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "video"],
+      "description": "Open source video transcoder"
+    },
+    {
+      "id": "audacity",
+      "name": "Audacity",
+      "brew_cask": "audacity",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "audio"],
+      "description": "Free, open source audio editor"
+    },
+    {
+      "id": "logic-pro",
+      "name": "Logic Pro",
+      "brew_cask": null,
+      "mas_id": 634148309,
+      "dmg_url": null,
+      "categories": ["content-creator", "audio"],
+      "description": "Apple's professional music production studio"
+    },
+    {
+      "id": "jupyter",
+      "name": "JupyterLab Desktop",
+      "brew_cask": "jupyterlab",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science", "developer"],
+      "description": "Desktop app for JupyterLab notebooks"
+    },
+    {
+      "id": "r",
+      "name": "R",
+      "brew_formula": "r",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science"],
+      "description": "Statistical computing language"
+    },
+    {
+      "id": "rstudio",
+      "name": "RStudio",
+      "brew_cask": "rstudio",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science"],
+      "description": "IDE for R statistical computing"
+    },
+    {
+      "id": "anaconda",
+      "name": "Anaconda",
+      "brew_cask": "anaconda",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science", "developer"],
+      "description": "Python/R distribution for data science"
+    },
+    {
+      "id": "pycharm",
+      "name": "PyCharm",
+      "brew_cask": "pycharm",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science", "developer", "editor"],
+      "description": "Python IDE by JetBrains"
+    },
+    {
+      "id": "datagrip",
+      "name": "DataGrip",
+      "brew_cask": "datagrip",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["data-science", "developer", "database"],
+      "description": "Database IDE by JetBrains"
+    },
+    {
+      "id": "mongodb-compass",
+      "name": "MongoDB Compass",
+      "brew_cask": "mongodb-compass",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "database"],
+      "description": "GUI for exploring and querying MongoDB"
+    },
+    {
+      "id": "httpie",
+      "name": "HTTPie",
+      "brew_cask": "httpie",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "api"],
+      "description": "Modern API testing client with beautiful UI"
+    },
+    {
+      "id": "transmit",
+      "name": "Transmit 5",
+      "brew_cask": "transmit",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "ftp"],
+      "description": "The gold standard of Mac file transfer apps"
+    },
+    {
+      "id": "cyberduck",
+      "name": "Cyberduck",
+      "brew_cask": "cyberduck",
+      "mas_id": 409222199,
+      "dmg_url": null,
+      "categories": ["developer", "ftp"],
+      "description": "FTP, SFTP, WebDAV, S3 file browser"
+    },
+    {
+      "id": "fork",
+      "name": "Fork",
+      "brew_cask": "fork",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "git"],
+      "description": "Fast and friendly git client for Mac"
+    },
+    {
+      "id": "dash",
+      "name": "Dash",
+      "brew_cask": "dash",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer"],
+      "description": "API documentation browser and code snippet manager"
+    },
+    {
+      "id": "paw",
+      "name": "RapidAPI (Paw)",
+      "brew_cask": "rapidapi",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "api"],
+      "description": "Full-featured HTTP client for API testing"
+    },
+    {
+      "id": "virtualbox",
+      "name": "VirtualBox",
+      "brew_cask": "virtualbox",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "virtualization"],
+      "description": "Free, open source VM platform"
+    },
+    {
+      "id": "utm",
+      "name": "UTM",
+      "brew_cask": "utm",
+      "mas_id": 1538878817,
+      "dmg_url": null,
+      "categories": ["developer", "virtualization"],
+      "description": "Virtual machines for Mac (Apple Silicon native)"
+    },
+    {
+      "id": "multipass",
+      "name": "Multipass",
+      "brew_cask": "multipass",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "virtualization"],
+      "description": "Instant Ubuntu VMs on Mac"
+    },
+    {
+      "id": "visual-paradigm",
+      "name": "OmniGraffle",
+      "brew_cask": "omnigraffle",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer", "developer", "diagramming"],
+      "description": "Diagramming and digital illustration for Mac"
+    },
+    {
+      "id": "miro",
+      "name": "Miro",
+      "brew_cask": "miro",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "designer", "collaboration"],
+      "description": "Visual collaboration platform and whiteboard"
+    },
+    {
+      "id": "figma-agent",
+      "name": "Figma Agent",
+      "brew_cask": "figma",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer"],
+      "description": "Figma font helper for local font access"
+    },
+    {
+      "id": "fontexplorer-x",
+      "name": "FontExplorer X Pro",
+      "brew_cask": "fontexplorer-x-pro",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer"],
+      "description": "Professional font management for Mac"
+    },
+    {
+      "id": "textsoap",
+      "name": "Typeface 3",
+      "brew_cask": "typeface",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["designer"],
+      "description": "Beautiful font manager for Mac"
+    },
+    {
+      "id": "screenium",
+      "name": "Screenium",
+      "brew_cask": null,
+      "mas_id": 1511933600,
+      "dmg_url": null,
+      "categories": ["productivity", "screenshot"],
+      "description": "Advanced screenshot and annotation tool"
+    },
+    {
+      "id": "paste",
+      "name": "Paste",
+      "brew_cask": "paste",
+      "mas_id": 967805235,
+      "dmg_url": null,
+      "categories": ["productivity", "clipboard"],
+      "description": "Smart clipboard manager for Mac"
+    },
+    {
+      "id": "maccy",
+      "name": "Maccy",
+      "brew_cask": "maccy",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "clipboard"],
+      "description": "Lightweight clipboard manager for macOS"
+    },
+    {
+      "id": "topnotch",
+      "name": "TopNotch",
+      "brew_cask": null,
+      "mas_id": 1477063649,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Make the MacBook notch invisible"
+    },
+    {
+      "id": "amphetamine",
+      "name": "Amphetamine",
+      "brew_cask": null,
+      "mas_id": 937984704,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Keep your Mac awake with ease"
+    },
+    {
+      "id": "dato",
+      "name": "Dato",
+      "brew_cask": null,
+      "mas_id": 1470584107,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Menu bar calendar and time zone converter"
+    },
+    {
+      "id": "stats",
+      "name": "Stats",
+      "brew_cask": "stats",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "macOS system monitor in your menu bar"
+    },
+    {
+      "id": "istatmenus",
+      "name": "iStat Menus",
+      "brew_cask": "istatmenus",
+      "mas_id": 1319778037,
+      "dmg_url": null,
+      "categories": ["productivity", "utility"],
+      "description": "Advanced Mac system monitor in the menu bar"
+    },
+    {
+      "id": "superduper",
+      "name": "SuperDuper!",
+      "brew_cask": "superduper",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "backup"],
+      "description": "Smart, fast backup and recovery for Mac"
+    },
+    {
+      "id": "carbon-copy-cloner",
+      "name": "Carbon Copy Cloner",
+      "brew_cask": "carbon-copy-cloner",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "backup"],
+      "description": "Backup, restore, and clone your Mac"
+    },
+    {
+      "id": "dropbox",
+      "name": "Dropbox",
+      "brew_cask": "dropbox",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "storage"],
+      "description": "Cloud storage and file sharing"
+    },
+    {
+      "id": "google-drive",
+      "name": "Google Drive",
+      "brew_cask": "google-drive",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "storage"],
+      "description": "Google's cloud storage and sync"
+    },
+    {
+      "id": "vlc",
+      "name": "VLC",
+      "brew_cask": "vlc",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "media"],
+      "description": "Free, open source cross-platform media player"
+    },
+    {
+      "id": "iina",
+      "name": "IINA",
+      "brew_cask": "iina",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["content-creator", "media"],
+      "description": "Modern media player for macOS"
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "brew_cask": "spotify",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["productivity", "media"],
+      "description": "Digital music streaming service"
+    },
+    {
+      "id": "gpg-suite",
+      "name": "GPG Suite",
+      "brew_cask": "gpg-suite",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "security"],
+      "description": "OpenPGP encryption tools for macOS"
+    },
+    {
+      "id": "tailscale",
+      "name": "Tailscale",
+      "brew_cask": "tailscale",
+      "mas_id": 1475387142,
+      "dmg_url": null,
+      "categories": ["developer", "network"],
+      "description": "Zero config VPN built on WireGuard"
+    },
+    {
+      "id": "wireshark",
+      "name": "Wireshark",
+      "brew_cask": "wireshark",
+      "mas_id": null,
+      "dmg_url": null,
+      "categories": ["developer", "network"],
+      "description": "Network protocol analyzer"
+    }
+  ],
+  "starter_packs": [
+    {
+      "id": "developer-setup",
+      "name": "Developer Setup",
+      "tagline": "Everything a software engineer needs to ship on day one",
+      "description": "The essential toolkit for modern software development. Includes the most popular editor, terminal, version control, containerization, API testing, and database tools used by professional developers.",
+      "app_ids": [
+        "visual-studio-code",
+        "iterm2",
+        "git",
+        "github-desktop",
+        "docker",
+        "postman",
+        "tableplus",
+        "node",
+        "python",
+        "raycast",
+        "1password",
+        "dash",
+        "proxyman",
+        "gpg-suite",
+        "tailscale"
+      ]
+    },
+    {
+      "id": "designer-setup",
+      "name": "Designer Setup",
+      "tagline": "A complete creative environment for UI/UX and visual designers",
+      "description": "Curated tools for product designers and visual artists. Covers UI design, vector illustration, photo editing, font management, and design handoff — the full professional design workflow on a fresh Mac.",
+      "app_ids": [
+        "figma",
+        "sketch",
+        "affinity-designer",
+        "affinity-photo",
+        "pixelmator-pro",
+        "imageoptim",
+        "cleanshot-x",
+        "fontexplorer-x",
+        "textsoap",
+        "zeplin",
+        "miro",
+        "raycast",
+        "1password",
+        "paste",
+        "rectangle"
+      ]
+    },
+    {
+      "id": "content-creator-setup",
+      "name": "Content Creator Setup",
+      "tagline": "Record, edit, and publish content like a pro",
+      "description": "Built for YouTubers, streamers, podcasters, and social media creators. Covers screen recording, video editing, audio production, live streaming, and graphic design in one clean install list.",
+      "app_ids": [
+        "obs",
+        "davinci-resolve",
+        "screenflow",
+        "loom",
+        "audacity",
+        "logic-pro",
+        "handbrake",
+        "vlc",
+        "iina",
+        "cleanshot-x",
+        "canva",
+        "imageoptim",
+        "raycast",
+        "1password",
+        "notion"
+      ]
+    },
+    {
+      "id": "data-science-setup",
+      "name": "Data Science Setup",
+      "tagline": "From raw data to insight without the environment headaches",
+      "description": "A batteries-included setup for data scientists and ML engineers. Includes Python, R, notebooks, statistical tools, database clients, and the editors and CLI tools the data community relies on.",
+      "app_ids": [
+        "python",
+        "r",
+        "rstudio",
+        "jupyter",
+        "anaconda",
+        "pycharm",
+        "datagrip",
+        "tableplus",
+        "mongodb-compass",
+        "visual-studio-code",
+        "git",
+        "docker",
+        "iterm2",
+        "raycast",
+        "1password"
+      ]
+    }
+  ]
+}

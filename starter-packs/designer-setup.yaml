@@ -1,0 +1,208 @@
+# Designer Setup - Mac Auto-Installer Starter Pack
+# Optimized for UI/UX designers, brand designers, and design systems teams
+# Install: macinstall apply designer-setup.yaml
+
+profile:
+  name: Designer Setup
+  description: Complete design environment with UI tools, font managers, asset tools, and collaboration apps
+  version: "1.0"
+  tags: [designer, ux, ui, brand]
+
+# ── Prerequisites ────────────────────────────────────────────────────────────
+prerequisites:
+  - name: Homebrew
+    check: brew --version
+    install: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    required: true
+
+# ── Applications (Homebrew Cask) ─────────────────────────────────────────────
+apps:
+  design_tools:
+    - name: Figma
+      cask: figma
+      method: brew_cask
+
+    - name: Sketch
+      cask: sketch
+      method: brew_cask
+      optional: true
+      note: "Requires paid license"
+
+    - name: Adobe Creative Cloud
+      cask: adobe-creative-cloud
+      method: brew_cask
+      optional: true
+      note: "Downloads CC desktop app; install individual apps (Photoshop, Illustrator, etc.) from within"
+
+    - name: Canva
+      mas_id: 897446215
+      method: mas
+      optional: true
+
+    - name: Affinity Designer
+      mas_id: 824171161
+      method: mas
+      optional: true
+
+    - name: Affinity Photo
+      mas_id: 824183456
+      method: mas
+      optional: true
+
+  prototyping:
+    - name: ProtoPie
+      cask: protopie
+      method: brew_cask
+      optional: true
+
+    - name: Principle
+      cask: principle
+      method: brew_cask
+      optional: true
+
+  handoff_and_collaboration:
+    - name: Zeplin
+      cask: zeplin
+      method: brew_cask
+      optional: true
+
+    - name: Abstract
+      cask: abstract
+      method: brew_cask
+      optional: true
+      note: "Version control for Sketch files"
+
+    - name: Loom
+      cask: loom
+      method: brew_cask
+
+    - name: Notion
+      cask: notion
+      method: brew_cask
+
+    - name: Slack
+      cask: slack
+      method: brew_cask
+
+  font_tools:
+    - name: FontBase
+      cask: fontbase
+      method: brew_cask
+      note: "Free font manager with Adobe Fonts sync"
+
+    - name: Font File Browser
+      mas_id: 1497291557
+      method: mas
+      optional: true
+
+    - name: RightFont
+      cask: rightfont
+      method: brew_cask
+      optional: true
+
+  color_tools:
+    - name: Pastel
+      mas_id: 413897608
+      method: mas
+      optional: true
+
+    - name: Sip (Color Picker)
+      mas_id: 507257563
+      method: mas
+      optional: true
+
+  asset_management:
+    - name: Eagle (Asset Manager)
+      cask: eagle
+      method: brew_cask
+      optional: true
+
+    - name: Image2icon
+      mas_id: 992115977
+      method: mas
+      optional: true
+
+  image_optimization:
+    - name: ImageOptim
+      cask: imageoptim
+      method: brew_cask
+
+    - name: Squash
+      cask: squash
+      method: brew_cask
+      optional: true
+
+  screen_capture:
+    - name: CleanShot X
+      cask: cleanshot
+      method: brew_cask
+
+    - name: Rottenwood
+      mas_id: 1585778307
+      method: mas
+      optional: true
+
+  productivity:
+    - name: Rectangle
+      cask: rectangle
+      method: brew_cask
+
+    - name: 1Password
+      cask: 1password
+      method: brew_cask
+
+    - name: Dropbox
+      cask: dropbox
+      method: brew_cask
+      optional: true
+
+    - name: Google Drive
+      cask: google-drive
+      method: brew_cask
+      optional: true
+
+# ── CLI Tools ────────────────────────────────────────────────────────────────
+cli_tools:
+  image_processing:
+    - name: imagemagick
+      formula: imagemagick
+      method: brew
+      note: "Batch image conversion and manipulation"
+
+    - name: svgo (SVG optimizer)
+      method: npm_global
+      package: svgo
+
+    - name: sharp-cli (image processing)
+      method: npm_global
+      package: sharp-cli
+      optional: true
+
+  fonts:
+    - name: fonttools
+      method: pip
+      package: fonttools
+      optional: true
+
+# ── npm Global Packages ───────────────────────────────────────────────────────
+npm_globals:
+  - svgo
+
+# ── macOS System Preferences ─────────────────────────────────────────────────
+system_prefs:
+  - description: Enable subpixel font rendering
+    command: defaults write -g CGFontRenderingFontSmoothingDisabled -bool false
+  - description: Increase UI resolution for Retina displays
+    command: defaults write NSGlobalDomain AppleFontSmoothing -int 2
+  - description: Show all file extensions in Finder
+    command: defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+
+# ── Recommendations ───────────────────────────────────────────────────────────
+recommendations:
+  if_installed:
+    - app: Figma
+      suggest: [zeplin, abstract, loom]
+    - app: Sketch
+      suggest: [abstract, zeplin]
+    - app: Adobe Creative Cloud
+      suggest: [imageoptim, eagle]

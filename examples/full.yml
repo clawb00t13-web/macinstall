@@ -1,0 +1,118 @@
+version: 1
+
+meta:
+  name: Full Developer Setup
+  description: Complete dev machine configuration
+  author: you@example.com
+
+defaults:
+  retry: 2
+  timeout: 300
+  skip_if_installed: true
+
+bootstrap:
+  homebrew: true
+  mas: true
+
+apps:
+  # --- Editors & IDEs ---
+  - id: visual-studio-code
+    name: Visual Studio Code
+    method: brew-cask
+
+  - id: cursor
+    name: Cursor
+    method: brew-cask
+
+  # --- Browsers ---
+  - id: arc
+    name: Arc
+    method: brew-cask
+
+  # --- Productivity ---
+  - id: 1password
+    name: 1Password
+    method: brew-cask
+    retry: 3
+
+  - id: notion
+    name: Notion
+    method: brew-cask
+
+  - id: raycast
+    name: Raycast
+    method: brew-cask
+
+  # --- Communication ---
+  - id: slack
+    name: Slack
+    method: brew-cask
+
+  - id: zoom
+    name: Zoom
+    method: brew-cask
+
+  # --- Terminal & CLI Tools ---
+  - id: iterm2
+    name: iTerm2
+    method: brew-cask
+
+  - id: git
+    name: Git
+    method: brew-formula
+
+  - id: ripgrep
+    name: ripgrep
+    method: brew-formula
+
+  - id: fzf
+    name: fzf
+    method: brew-formula
+
+  - id: jq
+    name: jq
+    method: brew-formula
+
+  - id: node
+    name: Node.js
+    method: brew-formula
+    options:
+      version: "22"
+
+  # --- Mac App Store ---
+  - id: "497799835"
+    name: Xcode
+    method: mas
+    options:
+      mas_id: 497799835
+
+  # --- Custom / Script ---
+  - id: oh-my-zsh
+    name: Oh My Zsh
+    method: script
+    options:
+      script: 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+      check_command: "[ -d ~/.oh-my-zsh ]"
+    optional: true
+
+groups:
+  essentials:
+    - visual-studio-code
+    - git
+    - arc
+    - 1password
+
+  dev-tools:
+    - cursor
+    - iterm2
+    - git
+    - ripgrep
+    - fzf
+    - jq
+    - node
+
+  productivity:
+    - notion
+    - raycast
+    - slack
+    - zoom

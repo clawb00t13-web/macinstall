@@ -1,0 +1,283 @@
+# Data Science Setup - Mac Auto-Installer Starter Pack
+# Optimized for data scientists, ML engineers, and analysts
+# Install: macinstall apply data-science-setup.yaml
+
+profile:
+  name: Data Science Setup
+  description: Python, R, Jupyter, database tools, and ML frameworks for data scientists and analysts
+  version: "1.0"
+  tags: [data-science, machine-learning, analytics, python, r]
+
+# ── Prerequisites ────────────────────────────────────────────────────────────
+prerequisites:
+  - name: Xcode Command Line Tools
+    check: xcode-select -p
+    install: xcode-select --install
+    required: true
+
+  - name: Homebrew
+    check: brew --version
+    install: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    required: true
+
+# ── Applications (Homebrew Cask) ─────────────────────────────────────────────
+apps:
+  notebooks_and_ides:
+    - name: Jupyter (via JupyterLab Desktop)
+      cask: jupyterlab
+      method: brew_cask
+
+    - name: Visual Studio Code
+      cask: visual-studio-code
+      method: brew_cask
+      post_install:
+        - code --install-extension ms-python.python
+        - code --install-extension ms-toolsai.jupyter
+        - code --install-extension ms-python.black-formatter
+        - code --install-extension ms-python.pylint
+
+    - name: PyCharm Community
+      cask: pycharm-ce
+      method: brew_cask
+      optional: true
+
+    - name: RStudio
+      cask: rstudio
+      method: brew_cask
+      optional: true
+      note: "Required if using R"
+
+  database_tools:
+    - name: TablePlus
+      cask: tableplus
+      method: brew_cask
+      note: "Connect to Postgres, MySQL, SQLite, Redis, and more"
+
+    - name: DBeaver Community
+      cask: dbeaver-community
+      method: brew_cask
+      optional: true
+      note: "Free universal database tool"
+
+    - name: DataGrip
+      cask: datagrip
+      method: brew_cask
+      optional: true
+      note: "JetBrains database IDE; requires license"
+
+    - name: Postico (PostgreSQL)
+      cask: postico
+      method: brew_cask
+      optional: true
+
+    - name: MongoDB Compass
+      cask: mongodb-compass
+      method: brew_cask
+      optional: true
+
+  data_visualization:
+    - name: Tableau Public
+      cask: tableau-public
+      method: brew_cask
+      optional: true
+
+    - name: Metabase
+      cask: metabase
+      method: brew_cask
+      optional: true
+      note: "Self-hosted BI tool"
+
+  cloud_and_infra:
+    - name: Docker Desktop
+      cask: docker
+      method: brew_cask
+      note: "Run databases and services locally"
+
+    - name: Google Cloud SDK
+      cask: google-cloud-sdk
+      method: brew_cask
+      optional: true
+
+  productivity:
+    - name: Notion
+      cask: notion
+      method: brew_cask
+
+    - name: Rectangle
+      cask: rectangle
+      method: brew_cask
+
+    - name: 1Password
+      cask: 1password
+      method: brew_cask
+
+# ── CLI Tools (Homebrew Formulae) ────────────────────────────────────────────
+cli_tools:
+  languages:
+    - name: Python 3.12
+      formula: python@3.12
+      method: brew
+      post_install:
+        - pip3 install --upgrade pip
+        - pip3 install virtualenv
+
+    - name: R
+      formula: r
+      method: brew
+      optional: true
+
+  python_environment:
+    - name: pyenv
+      formula: pyenv
+      method: brew
+      post_install:
+        - echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
+        - echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
+        - echo 'eval "$(pyenv init --path)"' >> ~/.zshrc
+
+    - name: pipx
+      formula: pipx
+      method: brew
+      post_install:
+        - pipx ensurepath
+
+  databases:
+    - name: PostgreSQL 16
+      formula: postgresql@16
+      method: brew
+      post_install:
+        - brew services start postgresql@16
+
+    - name: Redis
+      formula: redis
+      method: brew
+      post_install:
+        - brew services start redis
+      optional: true
+
+    - name: SQLite
+      formula: sqlite
+      method: brew
+
+  data_utilities:
+    - name: jq (JSON processor)
+      formula: jq
+      method: brew
+
+    - name: csvkit (CSV tools)
+      method: pip
+      package: csvkit
+
+    - name: xsv (fast CSV processor)
+      formula: xsv
+      method: brew
+
+    - name: miller (data processing)
+      formula: miller
+      method: brew
+      optional: true
+
+  cloud_cli:
+    - name: AWS CLI
+      formula: awscli
+      method: brew
+      optional: true
+
+    - name: Azure CLI
+      formula: azure-cli
+      method: brew
+      optional: true
+
+  version_control:
+    - name: git
+      formula: git
+      method: brew
+
+    - name: gh (GitHub CLI)
+      formula: gh
+      method: brew
+
+    - name: dvc (Data Version Control)
+      method: pip
+      package: dvc
+      optional: true
+
+# ── Python Packages (pip) ────────────────────────────────────────────────────
+python_packages:
+  core:
+    - numpy
+    - pandas
+    - scipy
+    - matplotlib
+    - seaborn
+    - plotly
+    - jupyterlab
+    - ipykernel
+
+  machine_learning:
+    - scikit-learn
+    - xgboost
+    - lightgbm
+    - optional: true
+
+  deep_learning:
+    - torch
+    - torchvision
+    - tensorflow
+    - optional: true
+    - note: "Large packages — install only what you need"
+
+  data_access:
+    - sqlalchemy
+    - psycopg2-binary
+    - pymongo
+    - redis
+    - requests
+    - httpx
+    - boto3
+    - optional: true
+
+  utilities:
+    - black
+    - ruff
+    - mypy
+    - pytest
+    - rich
+    - typer
+    - python-dotenv
+    - tqdm
+
+# ── R Packages (optional) ────────────────────────────────────────────────────
+r_packages:
+  optional: true
+  packages:
+    - tidyverse
+    - ggplot2
+    - dplyr
+    - caret
+    - shiny
+
+# ── macOS System Preferences ─────────────────────────────────────────────────
+system_prefs:
+  - description: Show all file extensions in Finder
+    command: defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+  - description: Show hidden files in Finder
+    command: defaults write com.apple.finder AppleShowAllFiles -bool true
+  - description: Faster key repeat
+    command: defaults write NSGlobalDomain KeyRepeat -int 2
+  - description: Disable press-and-hold for key repeat
+    command: defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+
+# ── Recommendations ───────────────────────────────────────────────────────────
+recommendations:
+  if_installed:
+    - app: python3
+      suggest: [jupyterlab, tableplus, docker]
+    - app: RStudio
+      suggest: [r-packages]
+    - app: Docker Desktop
+      suggest: [postgresql, redis]
+    - app: TablePlus
+      suggest: [postgresql, dbeaver-community]
+    - app: Visual Studio Code
+      suggest: [python-extension, jupyter-extension]

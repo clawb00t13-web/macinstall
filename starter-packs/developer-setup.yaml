@@ -1,0 +1,270 @@
+# Developer Setup - Mac Auto-Installer Starter Pack
+# Optimized for full-stack / DevOps developers
+# Install: macinstall apply developer-setup.yaml
+
+profile:
+  name: Developer Setup
+  description: Full-stack developer environment with editors, runtimes, containers, and CLI tools
+  version: "1.0"
+  tags: [developer, fullstack, devops]
+
+# ── Prerequisites ────────────────────────────────────────────────────────────
+prerequisites:
+  - name: Xcode Command Line Tools
+    check: xcode-select -p
+    install: xcode-select --install
+    required: true
+
+  - name: Homebrew
+    check: brew --version
+    install: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    required: true
+    post_install:
+      - eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# ── Applications (Homebrew Cask) ─────────────────────────────────────────────
+apps:
+  editors:
+    - name: Visual Studio Code
+      cask: visual-studio-code
+      method: brew_cask
+      post_install:
+        - code --install-extension ms-vscode.vscode-typescript-next
+        - code --install-extension esbenp.prettier-vscode
+        - code --install-extension dbaeumer.vscode-eslint
+        - code --install-extension eamodio.gitlens
+        - code --install-extension ms-azuretools.vscode-docker
+
+    - name: Cursor
+      cask: cursor
+      method: brew_cask
+      optional: true
+
+    - name: JetBrains Toolbox
+      cask: jetbrains-toolbox
+      method: brew_cask
+      optional: true
+
+  terminals:
+    - name: iTerm2
+      cask: iterm2
+      method: brew_cask
+
+    - name: Warp
+      cask: warp
+      method: brew_cask
+      optional: true
+
+  version_control:
+    - name: GitHub Desktop
+      cask: github
+      method: brew_cask
+      optional: true
+
+    - name: Fork
+      cask: fork
+      method: brew_cask
+      optional: true
+
+  containers:
+    - name: Docker Desktop
+      cask: docker
+      method: brew_cask
+      post_install:
+        - open /Applications/Docker.app
+
+    - name: Orbstack
+      cask: orbstack
+      method: brew_cask
+      optional: true
+      note: "Lighter Docker alternative"
+
+  databases:
+    - name: TablePlus
+      cask: tableplus
+      method: brew_cask
+
+    - name: Postico
+      cask: postico
+      method: brew_cask
+      optional: true
+
+  api_tools:
+    - name: Insomnia
+      cask: insomnia
+      method: brew_cask
+
+    - name: Proxyman
+      cask: proxyman
+      method: brew_cask
+      optional: true
+
+  productivity:
+    - name: Notion
+      cask: notion
+      method: brew_cask
+
+    - name: Rectangle
+      cask: rectangle
+      method: brew_cask
+
+    - name: 1Password
+      cask: 1password
+      method: brew_cask
+
+# ── CLI Tools (Homebrew Formulae) ────────────────────────────────────────────
+cli_tools:
+  version_control:
+    - name: git
+      formula: git
+      method: brew
+      config:
+        - git config --global core.autocrlf input
+        - git config --global pull.rebase false
+
+    - name: git-lfs
+      formula: git-lfs
+      method: brew
+      post_install:
+        - git lfs install
+
+    - name: gh (GitHub CLI)
+      formula: gh
+      method: brew
+
+  runtimes:
+    - name: Node.js (via nvm)
+      method: script
+      script: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      post_install:
+        - nvm install --lts
+        - nvm use --lts
+      check: nvm --version
+
+    - name: Python 3
+      formula: python@3.12
+      method: brew
+      post_install:
+        - pip3 install --upgrade pip
+
+    - name: Go
+      formula: go
+      method: brew
+
+    - name: Rust
+      method: script
+      script: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      check: rustc --version
+
+  package_managers:
+    - name: pnpm
+      formula: pnpm
+      method: brew
+
+    - name: yarn
+      formula: yarn
+      method: brew
+
+  utilities:
+    - name: jq
+      formula: jq
+      method: brew
+
+    - name: fzf
+      formula: fzf
+      method: brew
+      post_install:
+        - $(brew --prefix)/opt/fzf/install --all
+
+    - name: ripgrep
+      formula: ripgrep
+      method: brew
+
+    - name: bat (better cat)
+      formula: bat
+      method: brew
+
+    - name: eza (better ls)
+      formula: eza
+      method: brew
+
+    - name: zoxide (better cd)
+      formula: zoxide
+      method: brew
+
+    - name: tldr
+      formula: tldr
+      method: brew
+
+    - name: wget
+      formula: wget
+      method: brew
+
+    - name: httpie
+      formula: httpie
+      method: brew
+
+  cloud:
+    - name: AWS CLI
+      formula: awscli
+      method: brew
+      optional: true
+
+    - name: kubectl
+      formula: kubectl
+      method: brew
+      optional: true
+
+    - name: helm
+      formula: helm
+      method: brew
+      optional: true
+
+    - name: terraform
+      formula: terraform
+      method: brew
+      optional: true
+
+  shell:
+    - name: zsh-autosuggestions
+      formula: zsh-autosuggestions
+      method: brew
+
+    - name: zsh-syntax-highlighting
+      formula: zsh-syntax-highlighting
+      method: brew
+
+    - name: starship (prompt)
+      formula: starship
+      method: brew
+      post_install:
+        - echo 'eval "$(starship init zsh)"' >> ~/.zshrc
+
+# ── npm Global Packages ───────────────────────────────────────────────────────
+npm_globals:
+  - typescript
+  - ts-node
+  - nodemon
+  - http-server
+  - vercel
+
+# ── macOS System Preferences ─────────────────────────────────────────────────
+system_prefs:
+  - description: Show all file extensions in Finder
+    command: defaults write NSGlobalDomain AppleShowAllExtensions -bool true
+  - description: Show hidden files in Finder
+    command: defaults write com.apple.finder AppleShowAllFiles -bool true
+  - description: Faster key repeat
+    command: defaults write NSGlobalDomain KeyRepeat -int 2
+  - description: Disable press-and-hold for key repeat
+    command: defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
+
+# ── Recommendations ───────────────────────────────────────────────────────────
+recommendations:
+  if_installed:
+    - app: Visual Studio Code
+      suggest: [git, node, docker, gh]
+    - app: Docker Desktop
+      suggest: [kubectl, helm]
+    - app: go
+      suggest: [golangci-lint]

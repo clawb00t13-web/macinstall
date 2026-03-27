@@ -1,0 +1,14 @@
+version: 1
+
+meta:
+  name: Minimal Setup
+  description: The bare essentials
+
+apps:
+  - id: visual-studio-code
+    name: Visual Studio Code
+    method: brew-cask
+
+  - id: git
+    name: Git
+    method: brew-formula
