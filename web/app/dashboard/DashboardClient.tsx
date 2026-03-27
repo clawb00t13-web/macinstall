@@ -37,7 +37,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
       user_id: userId,
       profile_yaml: serializeProfileYaml(state),
       updated_at: new Date().toISOString(),
-    })
+    }, { onConflict: 'user_id' })
     setSaveStatus(error ? 'error' : 'saved')
     setTimeout(() => setSaveStatus('idle'), 2000)
   }, [userId])
