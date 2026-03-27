@@ -19,6 +19,7 @@ class AppStore: ObservableObject {
     @Published var cloudSyncEnabled: Bool = false
     @Published var isDetecting: Bool = false
     @Published var isInstalling: Bool = false
+    @Published var pendingUninstallIds: [String] = []
 
     var authService: AuthService? = nil
 
@@ -133,6 +134,8 @@ class AppStore: ObservableObject {
                 appIds: installedIds
             )}
         }
+
+        await checkAndProcessUninstallQueue()
     }
 
     private func checkAppInstalled(_ app: CatalogApp, brewInstalled: Set<String>) async -> InstallStatus {
@@ -158,6 +161,50 @@ class AppStore: ObservableObject {
         }
 
         return .notInstalled
+    }
+
+    // MARK: - Uninstall
+
+    func uninstallApp(_ app: CatalogApp) async {
+        if let cask = app.brewCask {
+            _ = await runCommand("/opt/homebrew/bin/brew", args: ["uninstall", "--cask", cask])
+        } else if let masId = app.masId {
+            _ = await runCommand("/usr/local/bin/mas", args: ["uninstall", "\(masId)"])
+        } else {
+            let fm = FileManager.default
+            let appPath = URL(fileURLWithPath: "/Applications/\(app.name).app")
+            let homeAppPath = fm.homeDirectoryForCurrentUser.appendingPathComponent("Applications/\(app.name).app")
+            if fm.fileExists(atPath: appPath.path) {
+                try? fm.trashItem(at: appPath, resultingItemURL: nil)
+            } else if fm.fileExists(atPath: homeAppPath.path) {
+                try? fm.trashItem(at: homeAppPath, resultingItemURL: nil)
+            }
+        }
+        await detectInstalled()
+    }
+
+    func checkAndProcessUninstallQueue() async {
+        guard let session = authService?.session else { return }
+        let queue = (try? await SupabaseService().fetchUninstallQueue(accessToken: session.accessToken)) ?? []
+        if !queue.isEmpty {
+            pendingUninstallIds = queue
+        }
+    }
+
+    func processPendingUninstalls() async {
+        let ids = pendingUninstallIds
+        pendingUninstallIds = []
+        for id in ids {
+            if let app = apps.first(where: { $0.id == id }) {
+                await uninstallApp(app)
+            }
+        }
+        if let session = authService?.session {
+            try? await SupabaseService().clearUninstallQueue(
+                accessToken: session.accessToken,
+                userId: session.userId
+            )
+        }
     }
 
     // MARK: - Install

@@ -149,6 +149,7 @@ struct CategoryPill: View {
 struct AppRowView: View {
     @EnvironmentObject var store: AppStore
     let app: CatalogApp
+    @State private var showingUninstallAlert = false
 
     var isEnabled: Bool { store.profile[app.id] ?? (status == .installed) }
     var status: InstallStatus { store.installStatus[app.id] ?? .unknown }
@@ -211,6 +212,18 @@ struct AppRowView: View {
                     .foregroundStyle(statusColor)
                     .frame(width: 80, alignment: .leading)
 
+                if status == .installed {
+                    Button {
+                        showingUninstallAlert = true
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Uninstall \(app.name)")
+                }
+
                 Toggle("", isOn: Binding(
                     get: { isEnabled },
                     set: { _ in store.toggleApp(app.id) }
@@ -223,5 +236,13 @@ struct AppRowView: View {
         }
         .contentShape(Rectangle())
         .opacity(isEnabled ? 1 : 0.65)
+        .alert("Uninstall \(app.name)?", isPresented: $showingUninstallAlert) {
+            Button("Uninstall", role: .destructive) {
+                Task { await store.uninstallApp(app) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will remove \(app.name) from your Mac.")
+        }
     }
 }

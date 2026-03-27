@@ -51,6 +51,23 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
     })
   }, [persist])
 
+  const handleUninstall = useCallback(async (id: string) => {
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('uninstall_queue')
+      .eq('user_id', userId)
+      .single()
+    const current: string[] = data?.uninstall_queue ?? []
+    if (!current.includes(id)) {
+      await supabase.from('user_profiles').upsert({
+        user_id: userId,
+        uninstall_queue: [...current, id],
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' })
+    }
+  }, [userId])
+
   const handleApplyPack = useCallback((appIds: string[]) => {
     setProfile((prev) => {
       const next = { ...prev }
@@ -140,6 +157,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                     enabled={app.id in profile ? !!profile[app.id] : installedSet.has(app.id)}
                     installed={installedSet.has(app.id)}
                     onToggle={handleToggle}
+                    onUninstall={handleUninstall}
                   />
                 ))
               )}

@@ -32,6 +32,7 @@ struct MenuBarView: View {
     @EnvironmentObject var store: AppStore
     @EnvironmentObject var authService: AuthService
     @Environment(\.openWindow) private var openWindow
+    @State private var showingQueueAlert = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -145,6 +146,25 @@ struct MenuBarView: View {
             .buttonStyle(.plain)
         }
         .frame(width: 280)
+        .onChange(of: store.pendingUninstallIds) { ids in
+            showingQueueAlert = !ids.isEmpty
+        }
+        .alert(
+            "Uninstall \(store.pendingUninstallIds.count) app(s) from web?",
+            isPresented: $showingQueueAlert
+        ) {
+            Button("Uninstall", role: .destructive) {
+                Task { await store.processPendingUninstalls() }
+            }
+            Button("Cancel", role: .cancel) {
+                store.pendingUninstallIds = []
+            }
+        } message: {
+            let names = store.pendingUninstallIds.compactMap { id in
+                store.apps.first(where: { $0.id == id })?.name
+            }.joined(separator: ", ")
+            Text(names.isEmpty ? "These apps will be removed from your Mac." : names)
+        }
     }
 }
 
