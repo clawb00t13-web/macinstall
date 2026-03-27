@@ -137,7 +137,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                   <AppRow
                     key={app.id}
                     app={app}
-                    enabled={!!profile[app.id]}
+                    enabled={app.id in profile ? !!profile[app.id] : installedSet.has(app.id)}
                     installed={installedSet.has(app.id)}
                     onToggle={handleToggle}
                   />
