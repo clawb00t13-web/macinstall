@@ -90,7 +90,8 @@ class AppStore: ObservableObject {
     }
 
     func toggleApp(_ id: String) {
-        profile[id] = !(profile[id] ?? false)
+        let currentDefault = installStatus[id] == .installed
+        profile[id] = !(profile[id] ?? currentDefault)
         saveProfile()
     }
 

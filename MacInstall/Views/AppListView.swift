@@ -44,6 +44,18 @@ struct AppListView: View {
             Divider()
                 .padding(.top, 4)
 
+            // Column header
+            HStack {
+                Spacer()
+                Text("In Profile")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .padding(.trailing, 18)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 2)
+
             // App list
             List(store.filteredApps) { app in
                 AppRowView(app: app)
@@ -138,7 +150,7 @@ struct AppRowView: View {
     @EnvironmentObject var store: AppStore
     let app: CatalogApp
 
-    var isEnabled: Bool { store.profile[app.id] ?? false }
+    var isEnabled: Bool { store.profile[app.id] ?? (status == .installed) }
     var status: InstallStatus { store.installStatus[app.id] ?? .unknown }
 
     var statusEmoji: String {
@@ -206,6 +218,7 @@ struct AppRowView: View {
                 .toggleStyle(.switch)
                 .labelsHidden()
                 .scaleEffect(0.8)
+                .help("Include in profile — will install on new Macs")
             }
         }
         .contentShape(Rectangle())
