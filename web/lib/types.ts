@@ -13,5 +13,6 @@ export interface UserProfile {
   installed_app_ids: string[]
   uninstall_queue: string[]
   custom_packs: CustomPack[]
+  applied_pack_id: string | null
   updated_at: string
 }

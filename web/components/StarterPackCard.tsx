@@ -7,15 +7,15 @@ import { APPS } from '@/lib/catalog'
 interface StarterPackCardProps {
   pack: StarterPack
   installedSet: Set<string>
-  onApply: (appIds: string[]) => void
+  isApplied: boolean
+  onApply: (appIds: string[], packId: string) => void
   isCustom?: boolean
   onDelete?: () => void
 }
 
-export default function StarterPackCard({ pack, installedSet, onApply, isCustom, onDelete }: StarterPackCardProps) {
+export default function StarterPackCard({ pack, installedSet, isApplied, onApply, isCustom, onDelete }: StarterPackCardProps) {
   const [open, setOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set(pack.appIds))
-  const [applied, setApplied] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
 
   function openModal() {
@@ -32,10 +32,8 @@ export default function StarterPackCard({ pack, installedSet, onApply, isCustom,
   }
 
   function handleApply() {
-    onApply(Array.from(selected))
-    setApplied(true)
+    onApply(Array.from(selected), pack.id)
     setOpen(false)
-    setTimeout(() => setApplied(false), 3000)
   }
 
   const apps = pack.appIds.map(id => APPS.find(a => a.id === id)).filter(Boolean) as typeof APPS
@@ -54,10 +52,10 @@ export default function StarterPackCard({ pack, installedSet, onApply, isCustom,
               <button
                 onClick={openModal}
                 className={`text-white text-xs font-medium px-4 py-1.5 rounded-lg transition-colors ${
-                  applied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'
+                  isApplied ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-500 hover:bg-blue-600'
                 }`}
               >
-                {applied ? '✓ Applied' : 'Use This Pack'}
+                {isApplied ? '✓ Applied — Customize' : 'Use This Pack'}
               </button>
             </div>
           </div>

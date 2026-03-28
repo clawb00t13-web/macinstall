@@ -3,7 +3,6 @@ import SwiftUI
 struct StarterPacksView: View {
     @EnvironmentObject var store: AppStore
     @State private var customizingPack: StarterPack? = nil
-    @State private var appliedPackId: String? = nil
     @State private var showingCreateSheet = false
 
     let columns = [
@@ -40,7 +39,7 @@ struct StarterPacksView: View {
                     ForEach(store.customPacks) { pack in
                         StarterPackCard(
                             pack: pack,
-                            isApplied: appliedPackId == pack.id,
+                            isApplied: store.appliedPackId == pack.id,
                             isCustom: true,
                             onDelete: {
                                 store.deleteCustomPack(id: pack.id)
@@ -53,7 +52,7 @@ struct StarterPacksView: View {
                     ForEach(starterPacks) { pack in
                         StarterPackCard(
                             pack: pack,
-                            isApplied: appliedPackId == pack.id
+                            isApplied: store.appliedPackId == pack.id
                         ) {
                             customizingPack = pack
                         }
@@ -65,8 +64,7 @@ struct StarterPacksView: View {
         }
         .sheet(item: $customizingPack) { pack in
             PackCustomizeSheet(pack: pack) { selectedIds in
-                store.applyStarterPack(appIds: selectedIds)
-                appliedPackId = pack.id
+                store.applyStarterPack(appIds: selectedIds, packId: pack.id)
                 customizingPack = nil
             }
             .environmentObject(store)

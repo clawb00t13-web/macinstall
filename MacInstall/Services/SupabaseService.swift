@@ -91,6 +91,39 @@ struct SupabaseService {
         }
     }
 
+    /// Fetch the last applied pack ID.
+    func fetchAppliedPackId(accessToken: String) async throws -> String? {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?select=applied_pack_id") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        return rows?.first?["applied_pack_id"] as? String
+    }
+
+    /// Persist the last applied pack ID.
+    func upsertAppliedPackId(accessToken: String, userId: String, packId: String) async throws {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?on_conflict=user_id") else {
+            throw URLError(.badURL)
+        }
+        let body: [String: Any] = [
+            "user_id": userId,
+            "applied_pack_id": packId,
+            "updated_at": ISO8601DateFormatter().string(from: Date())
+        ]
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json",             forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)",        forHTTPHeaderField: "Authorization")
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("resolution=merge-duplicates",  forHTTPHeaderField: "Prefer")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        _ = try await URLSession.shared.data(for: request)
+    }
+
     /// Fetch custom packs stored as JSONB in user_profiles.custom_packs.
     func fetchCustomPacks(accessToken: String) async throws -> [StarterPack] {
         guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?select=custom_packs") else {

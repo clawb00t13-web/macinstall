@@ -20,17 +20,19 @@ interface DashboardClientProps {
   initialYaml: string
   installedAppIds: string[]
   initialCustomPacks: CustomPack[]
+  initialAppliedPackId: string | null
 }
 
 type Tab = 'apps' | 'packs'
 
-export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds, initialCustomPacks }: DashboardClientProps) {
+export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds, initialCustomPacks, initialAppliedPackId }: DashboardClientProps) {
   const [installedSet, setInstalledSet] = useState(() => new Set(installedAppIds))
   const [tab, setTab] = useState<Tab>('apps')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [profile, setProfile] = useState<ProfileState>(() => parseProfileYaml(initialYaml))
   const [customPacks, setCustomPacks] = useState<CustomPack[]>(initialCustomPacks)
+  const [appliedPackId, setAppliedPackId] = useState<string | null>(initialAppliedPackId)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -39,7 +41,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
     const poll = async () => {
       const { data } = await supabase
         .from('user_profiles')
-        .select('installed_app_ids')
+        .select('installed_app_ids, applied_pack_id')
         .eq('user_id', userId)
         .single()
       if (data?.installed_app_ids) {
@@ -48,6 +50,9 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
           if (next.size === prev.size && [...next].every(id => prev.has(id))) return prev
           return next
         })
+      }
+      if (data?.applied_pack_id) {
+        setAppliedPackId(prev => prev === data.applied_pack_id ? prev : data.applied_pack_id)
       }
     }
     const interval = setInterval(poll, 5000)
@@ -89,7 +94,8 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
     }
   }, [userId])
 
-  const handleApplyPack = useCallback((appIds: string[]) => {
+  const handleApplyPack = useCallback((appIds: string[], packId: string) => {
+    setAppliedPackId(packId)
     setProfile((prev) => {
       const next = { ...prev }
       for (const id of appIds) next[id] = true
@@ -97,7 +103,13 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
       debounceRef.current = setTimeout(() => persist(next), 800)
       return next
     })
-  }, [persist])
+    const supabase = createClient()
+    supabase.from('user_profiles').upsert({
+      user_id: userId,
+      applied_pack_id: packId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+  }, [persist, userId])
 
   const handleCreatePack = useCallback((data: Omit<CustomPack, 'id'>) => {
     const newPack: CustomPack = { id: crypto.randomUUID(), ...data }
@@ -223,6 +235,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                   key={pack.id}
                   pack={pack}
                   installedSet={installedSet}
+                  isApplied={appliedPackId === pack.id}
                   onApply={handleApplyPack}
                   isCustom={true}
                   onDelete={() => handleDeletePack(pack.id)}
@@ -234,6 +247,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                   key={pack.id}
                   pack={pack}
                   installedSet={installedSet}
+                  isApplied={appliedPackId === pack.id}
                   onApply={handleApplyPack}
                 />
               ))}

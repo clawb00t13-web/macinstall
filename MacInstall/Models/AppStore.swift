@@ -20,6 +20,7 @@ class AppStore: ObservableObject {
     @Published var isDetecting: Bool = false
     @Published var isInstalling: Bool = false
     @Published var customPacks: [StarterPack] = []
+    @Published var appliedPackId: String? = nil
 
     var authService: AuthService? = nil
 
@@ -81,6 +82,7 @@ class AppStore: ObservableObject {
             profile = parseYAML(yaml)
         }
         customPacks = (try? await SupabaseService().fetchCustomPacks(accessToken: accessToken)) ?? []
+        appliedPackId = try? await SupabaseService().fetchAppliedPackId(accessToken: accessToken)
     }
 
     private func buildYAML() -> String {
@@ -203,6 +205,13 @@ class AppStore: ObservableObject {
                 customPacks = fetched
             }
         }
+
+        // Sync applied pack ID
+        if let cloudPackId = try? await SupabaseService().fetchAppliedPackId(accessToken: session.accessToken) {
+            if cloudPackId != appliedPackId {
+                appliedPackId = cloudPackId
+            }
+        }
     }
 
     // MARK: - Uninstall
@@ -295,12 +304,18 @@ class AppStore: ObservableObject {
         }
     }
 
-    func applyStarterPack(appIds: [String]) {
+    func applyStarterPack(appIds: [String], packId: String) {
+        appliedPackId = packId
         profile = [:]
         for id in appIds {
             profile[id] = true
         }
         saveProfile()
+        if let session = authService?.session {
+            Task { try? await SupabaseService().upsertAppliedPackId(
+                accessToken: session.accessToken, userId: session.userId, packId: packId
+            )}
+        }
     }
 
     // MARK: - Helpers
