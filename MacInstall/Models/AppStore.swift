@@ -19,11 +19,10 @@ class AppStore: ObservableObject {
     @Published var cloudSyncEnabled: Bool = false
     @Published var isDetecting: Bool = false
     @Published var isInstalling: Bool = false
-    @Published var pendingUninstallIds: [String] = []
 
     var authService: AuthService? = nil
 
-    private var brewInstalledCasks: Set<String> = []
+    private var syncTask: Task<Void, Never>?
 
     init() {
         let defaultPath = (FileManager.default.homeDirectoryForCurrentUser.path as NSString)
@@ -31,9 +30,8 @@ class AppStore: ObservableObject {
         profilePath = defaultPath
         loadCatalog()
         loadProfile()
-        Task {
-            await detectInstalled()
-        }
+        Task { await detectInstalled() }
+        startSyncPolling()
     }
 
     func loadCatalog() {
@@ -58,38 +56,43 @@ class AppStore: ObservableObject {
     func loadProfile() {
         let url = URL(fileURLWithPath: profilePath)
         guard let content = try? String(contentsOf: url) else { return }
-        parseYAML(content)
+        profile = parseYAML(content)
     }
 
     func saveProfile() {
+        let yaml = buildYAML()
         let url = URL(fileURLWithPath: profilePath)
         let dir = url.deletingLastPathComponent()
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-
-        var lines = ["version: 1", "apps:"]
-        for app in apps where profile[app.id] == true {
-            lines.append("  - id: \(app.id)")
-            lines.append("    enabled: true")
-        }
-        let yaml = lines.joined(separator: "\n") + "\n"
         try? yaml.write(to: url, atomically: true, encoding: .utf8)
 
-        if cloudSyncEnabled, let session = authService?.session {
-            Task { try? await SupabaseService().upsertProfile(accessToken: session.accessToken, userId: session.userId, yaml: yaml) }
+        // Always sync to cloud when signed in — not just when cloudSyncEnabled
+        if let session = authService?.session {
+            Task { try? await SupabaseService().upsertProfile(
+                accessToken: session.accessToken, userId: session.userId, yaml: yaml
+            )}
         }
     }
 
     func loadFromCloud(accessToken: String, userId: String) async {
         let yaml = (try? await SupabaseService().fetchProfile(accessToken: accessToken)) ?? ""
         guard !yaml.isEmpty else { return }
-        parseYAML(yaml)
+        profile = parseYAML(yaml)
     }
 
-    private func parseYAML(_ content: String) {
+    private func buildYAML() -> String {
+        var lines = ["version: 1", "apps:"]
+        for app in apps where profile[app.id] == true {
+            lines.append("  - id: \(app.id)")
+            lines.append("    enabled: true")
+        }
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    private func parseYAML(_ content: String) -> [String: Bool] {
         var result: [String: Bool] = [:]
-        let lines = content.components(separatedBy: "\n")
         var currentId: String? = nil
-        for line in lines {
+        for line in content.components(separatedBy: "\n") {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
             if trimmed.hasPrefix("- id:") {
                 currentId = trimmed.replacingOccurrences(of: "- id:", with: "").trimmingCharacters(in: .whitespaces)
@@ -99,7 +102,7 @@ class AppStore: ObservableObject {
                 currentId = nil
             }
         }
-        profile = result
+        return result
     }
 
     func toggleApp(_ id: String) {
@@ -114,62 +117,91 @@ class AppStore: ObservableObject {
         isDetecting = true
         defer { isDetecting = false }
 
-        // Get brew list once
-        let brewOutput = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
-        let brewInstalled = Set(brewOutput.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
-
         for app in apps {
-            let status = await checkAppInstalled(app, brewInstalled: brewInstalled)
-            installStatus[app.id] = status
+            installStatus[app.id] = checkAppInstalled(app)
         }
 
-        // Sync installed app IDs to cloud so the website can reflect them
-        if let session = authService?.session {
-            let installedIds = installStatus.compactMap { id, status in
-                status == .installed ? id : nil
-            }
-            Task { try? await SupabaseService().upsertInstalledApps(
-                accessToken: session.accessToken,
-                userId: session.userId,
-                appIds: installedIds
-            )}
-        }
-
+        await syncInstalledToCloud()
         await checkAndProcessUninstallQueue()
     }
 
-    private func checkAppInstalled(_ app: CatalogApp, brewInstalled: Set<String>) async -> InstallStatus {
+    private func checkAppInstalled(_ app: CatalogApp) -> InstallStatus {
         let appName = app.name
         let appPath = "/Applications/\(appName).app"
         let homeApps = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Applications/\(appName).app").path
 
-        // Check /Applications and ~/Applications
         if FileManager.default.fileExists(atPath: appPath) ||
            FileManager.default.fileExists(atPath: homeApps) {
             return .installed
         }
+        return .notInstalled
+    }
 
-        // Brew lists it — but .app is missing from disk.
-        // Double-check with brew info --cask --json to see if it's truly installed
-        // (could be in a non-standard location) or was manually deleted.
-        if let cask = app.brewCask, brewInstalled.contains(cask) {
-            let json = await runCommand("/opt/homebrew/bin/brew", args: ["info", "--cask", cask, "--json"])
-            // An installed cask has a non-empty "installed" array; uninstalled shows "installed":[]
-            let isReallyInstalled = json.contains("\"installed\":[{") || json.contains("\"installed\": [{")
-            return isReallyInstalled ? .installed : .notInstalled
+    private func syncInstalledToCloud() async {
+        guard let session = authService?.session else { return }
+        let installedIds = installStatus.compactMap { id, status in status == .installed ? id : nil }
+        try? await SupabaseService().upsertInstalledApps(
+            accessToken: session.accessToken,
+            userId: session.userId,
+            appIds: installedIds
+        )
+    }
+
+    // MARK: - Cloud Sync Polling
+
+    func startSyncPolling() {
+        syncTask?.cancel()
+        syncTask = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 5_000_000_000) // 5s
+                guard !Task.isCancelled else { break }
+                await pollCloudSync()
+            }
+        }
+    }
+
+    func stopSyncPolling() {
+        syncTask?.cancel()
+        syncTask = nil
+    }
+
+    private func pollCloudSync() async {
+        guard let session = authService?.session else { return }
+
+        // Pull latest profile from cloud
+        if let cloudYaml = try? await SupabaseService().fetchProfile(accessToken: session.accessToken),
+           !cloudYaml.isEmpty {
+            let cloudProfile = parseYAML(cloudYaml)
+            if cloudProfile != profile {
+                print("[Sync] profile changed — updating local (\(cloudProfile.count) apps)")
+                let oldProfile = profile
+                profile = cloudProfile
+                // Persist locally so it survives restarts
+                let url = URL(fileURLWithPath: profilePath)
+                try? cloudYaml.write(to: url, atomically: true, encoding: .utf8)
+                // Auto-install apps newly enabled from the web
+                let toInstall = apps.filter {
+                    cloudProfile[$0.id] == true &&
+                    oldProfile[$0.id] != true &&
+                    installStatus[$0.id] == .notInstalled
+                }
+                if !toInstall.isEmpty {
+                    await installApps(toInstall)
+                }
+            }
         }
 
-        return .notInstalled
+        await checkAndProcessUninstallQueue()
     }
 
     // MARK: - Uninstall
 
     func uninstallApp(_ app: CatalogApp) async {
         if let cask = app.brewCask {
-            _ = await runCommand("/opt/homebrew/bin/brew", args: ["uninstall", "--cask", cask])
+            _ = await runCommand(brewPath, args: ["uninstall", "--cask", cask])
         } else if let masId = app.masId {
-            _ = await runCommand("/usr/local/bin/mas", args: ["uninstall", "\(masId)"])
+            _ = await runCommand(masPath, args: ["uninstall", "\(masId)"])
         } else {
             let fm = FileManager.default
             let appPath = URL(fileURLWithPath: "/Applications/\(app.name).app")
@@ -186,24 +218,17 @@ class AppStore: ObservableObject {
     func checkAndProcessUninstallQueue() async {
         guard let session = authService?.session else { return }
         let queue = (try? await SupabaseService().fetchUninstallQueue(accessToken: session.accessToken)) ?? []
-        if !queue.isEmpty {
-            pendingUninstallIds = queue
-        }
-    }
-
-    func processPendingUninstalls() async {
-        let ids = pendingUninstallIds
-        pendingUninstallIds = []
-        for id in ids {
+        guard !queue.isEmpty else { return }
+        // Clear first — prevents re-entry if detectInstalled() triggers this again mid-uninstall
+        try? await SupabaseService().clearUninstallQueue(
+            accessToken: session.accessToken,
+            userId: session.userId
+        )
+        print("[Sync] uninstall queue: \(queue.joined(separator: ", "))")
+        for id in queue {
             if let app = apps.first(where: { $0.id == id }) {
                 await uninstallApp(app)
             }
-        }
-        if let session = authService?.session {
-            try? await SupabaseService().clearUninstallQueue(
-                accessToken: session.accessToken,
-                userId: session.userId
-            )
         }
     }
 
@@ -213,31 +238,25 @@ class AppStore: ObservableObject {
         isInstalling = true
         Task {
             defer { isInstalling = false }
-            let enabledApps = apps.filter { profile[$0.id] == true && installStatus[$0.id] == .notInstalled }
-
-            // Snapshot brew list once before the loop for checkAppInstalled
-            let brewListBefore = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
-            var brewInstalled = Set(brewListBefore.components(separatedBy: "\n")
-                .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
-
-            for app in enabledApps {
-                installStatus[app.id] = .installing
-
-                if let cask = app.brewCask {
-                    _ = await runCommand("/opt/homebrew/bin/brew", args: ["install", "--cask", cask])
-                    // Refresh brew list so checkAppInstalled has accurate data
-                    let refreshed = await runCommand("/opt/homebrew/bin/brew", args: ["list", "--cask"])
-                    brewInstalled = Set(refreshed.components(separatedBy: "\n")
-                        .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
-                } else if let masId = app.masId {
-                    _ = await runCommand("/usr/local/bin/mas", args: ["install", "\(masId)"])
-                }
-
-                // Verify via the same thorough check used by detectInstalled —
-                // confirms the .app actually exists on disk, not just brew's registry.
-                installStatus[app.id] = await checkAppInstalled(app, brewInstalled: brewInstalled)
-            }
+            let toInstall = apps.filter { profile[$0.id] == true && installStatus[$0.id] == .notInstalled }
+            await installApps(toInstall)
         }
+    }
+
+    private func installApps(_ appsToInstall: [CatalogApp]) async {
+        for app in appsToInstall {
+            installStatus[app.id] = .installing
+            if let cask = app.brewCask {
+                _ = await runCommand(brewPath, args: ["install", "--cask", cask])
+                if checkAppInstalled(app) == .notInstalled {
+                    _ = await runCommand(brewPath, args: ["reinstall", "--cask", cask])
+                }
+            } else if let masId = app.masId {
+                _ = await runCommand(masPath, args: ["install", "\(masId)"])
+            }
+            installStatus[app.id] = checkAppInstalled(app)
+        }
+        await syncInstalledToCloud()
     }
 
     // MARK: - Starter Packs
@@ -252,19 +271,31 @@ class AppStore: ObservableObject {
 
     // MARK: - Helpers
 
+    private var brewPath: String {
+        ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"]
+            .first { FileManager.default.fileExists(atPath: $0) } ?? "/opt/homebrew/bin/brew"
+    }
+
+    private var masPath: String {
+        ["/opt/homebrew/bin/mas", "/usr/local/bin/mas"]
+            .first { FileManager.default.fileExists(atPath: $0) } ?? "/usr/local/bin/mas"
+    }
+
+    @discardableResult
     private func runCommand(_ path: String, args: [String]) async -> String {
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .utility).async {
                 let process = Process()
                 process.executableURL = URL(fileURLWithPath: path)
                 process.arguments = args
-                let pipe = Pipe()
-                process.standardOutput = pipe
-                process.standardError = Pipe()
+                let stdoutPipe = Pipe()
+                let stderrPipe = Pipe()
+                process.standardOutput = stdoutPipe
+                process.standardError = stderrPipe
                 do {
                     try process.run()
                     process.waitUntilExit()
-                    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                    let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
                     continuation.resume(returning: String(data: data, encoding: .utf8) ?? "")
                 } catch {
                     continuation.resume(returning: "")

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { APPS, CATEGORIES } from '@/lib/catalog'
 import { STARTER_PACKS } from '@/lib/starterPacks'
@@ -22,13 +22,33 @@ interface DashboardClientProps {
 type Tab = 'apps' | 'packs'
 
 export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds }: DashboardClientProps) {
-  const installedSet = new Set(installedAppIds)
+  const [installedSet, setInstalledSet] = useState(() => new Set(installedAppIds))
   const [tab, setTab] = useState<Tab>('apps')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [profile, setProfile] = useState<ProfileState>(() => parseProfileYaml(initialYaml))
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    const poll = async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('installed_app_ids')
+        .eq('user_id', userId)
+        .single()
+      if (data?.installed_app_ids) {
+        setInstalledSet(prev => {
+          const next = new Set<string>(data.installed_app_ids)
+          if (next.size === prev.size && [...next].every(id => prev.has(id))) return prev
+          return next
+        })
+      }
+    }
+    const interval = setInterval(poll, 5000)
+    return () => clearInterval(interval)
+  }, [userId])
 
   const persist = useCallback(async (state: ProfileState) => {
     setSaveStatus('saving')

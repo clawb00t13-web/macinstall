@@ -21,6 +21,21 @@ struct MacInstallApp: App {
                 authService.restoreSession()
                 store.authService = authService
             }
+            .onChange(of: authService.session == nil) { isSignedOut in
+                if isSignedOut {
+                    store.stopSyncPolling()
+                } else {
+                    // Immediately pull cloud state on sign-in instead of waiting 30s
+                    store.startSyncPolling()
+                    Task {
+                        await store.loadFromCloud(
+                            accessToken: authService.session!.accessToken,
+                            userId: authService.session!.userId
+                        )
+                        await store.detectInstalled()
+                    }
+                }
+            }
         }
         .menuBarExtraStyle(.window)
 

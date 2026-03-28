@@ -10,14 +10,17 @@ struct SupabaseService {
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-        return rows?.first?["profile_yaml"] as? String ?? ""
+        let yaml = rows?.first?["profile_yaml"] as? String ?? ""
+        print("[Supabase] fetchProfile → \(status) | \(yaml.isEmpty ? "(empty)" : "\(yaml.count) chars")")
+        return yaml
     }
 
     /// Sync the list of installed app IDs detected on this Mac to Supabase.
     func upsertInstalledApps(accessToken: String, userId: String, appIds: [String]) async throws {
-        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles") else {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?on_conflict=user_id") else {
             throw URLError(.badURL)
         }
         let body: [String: Any] = [
@@ -27,12 +30,19 @@ struct SupabaseService {
         ]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json",          forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)",     forHTTPHeaderField: "Authorization")
+        request.setValue("application/json",             forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)",        forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+        request.setValue("resolution=merge-duplicates",  forHTTPHeaderField: "Prefer")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        _ = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if status >= 300 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[Supabase] upsertInstalledApps → \(status) ERROR: \(body)")
+        } else {
+            print("[Supabase] upsertInstalledApps → \(status) | \(appIds.count) apps: \(appIds.joined(separator: ", "))")
+        }
     }
 
     /// Fetch the list of app IDs queued for uninstall from the web.
@@ -44,14 +54,19 @@ struct SupabaseService {
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
 
-        let (data, _) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
-        return rows?.first?["uninstall_queue"] as? [String] ?? []
+        let queue = rows?.first?["uninstall_queue"] as? [String] ?? []
+        if !queue.isEmpty {
+            print("[Supabase] fetchUninstallQueue → \(status) | queued: \(queue.joined(separator: ", "))")
+        }
+        return queue
     }
 
     /// Clear the uninstall queue in Supabase after processing.
     func clearUninstallQueue(accessToken: String, userId: String) async throws {
-        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles") else {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?on_conflict=user_id") else {
             throw URLError(.badURL)
         }
         let body: [String: Any] = [
@@ -61,17 +76,24 @@ struct SupabaseService {
         ]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json",             forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)",        forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+        request.setValue("resolution=merge-duplicates",  forHTTPHeaderField: "Prefer")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        _ = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if status >= 300 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[Supabase] clearUninstallQueue → \(status) ERROR: \(body)")
+        } else {
+            print("[Supabase] clearUninstallQueue → \(status) | queue cleared")
+        }
     }
 
     /// Upsert (insert or update) the user's profile YAML in Supabase.
     func upsertProfile(accessToken: String, userId: String, yaml: String) async throws {
-        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles") else {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?on_conflict=user_id") else {
             throw URLError(.badURL)
         }
         let body: [String: Any] = [
@@ -81,12 +103,18 @@ struct SupabaseService {
         ]
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json",             forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)",        forHTTPHeaderField: "Authorization")
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
-        request.setValue("resolution=merge-duplicates", forHTTPHeaderField: "Prefer")
+        request.setValue("resolution=merge-duplicates",  forHTTPHeaderField: "Prefer")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        _ = try await URLSession.shared.data(for: request)
+        let (data, response) = try await URLSession.shared.data(for: request)
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        if status >= 300 {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            print("[Supabase] upsertProfile → \(status) ERROR: \(body)")
+        } else {
+            print("[Supabase] upsertProfile → \(status) | \(yaml.count) chars")
+        }
     }
 }
