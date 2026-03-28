@@ -109,8 +109,9 @@ class MackupService: ObservableObject {
                 accessToken: accessToken, userId: userId,
                 archive: archiveData.base64EncodedString()
             )
-            statusMessage = "Backed up \(mackupApps.count) apps (\(sizeMB) MB)"
-            print("[Mackup] Uploaded \(mackupApps.count) apps (\(sizeMB) MB) to Supabase")
+            let appNames = mackupApps.joined(separator: ", ")
+            statusMessage = "Backed up: \(appNames)"
+            print("[Mackup] Uploaded \(mackupApps.count) apps (\(sizeMB) MB) to Supabase: \(appNames)")
         } catch {
             errorMessage = "Upload failed: \(error.localizedDescription)"
         }
