@@ -21,11 +21,15 @@ class AppStore: ObservableObject {
     @Published var isInstalling: Bool = false
     @Published var customPacks: [StarterPack] = []
     @Published var appliedPackId: String? = nil
+    let mackupService: MackupService
     var authService: AuthService? = nil
 
+    private let shell: ShellRunning
     private var syncTask: Task<Void, Never>?
 
-    init() {
+    init(shell: ShellRunning = ShellRunner(), backupStore: MackupBackupStoring = SupabaseService()) {
+        self.shell = shell
+        self.mackupService = MackupService(shell: shell, backupStore: backupStore)
         let defaultPath = (FileManager.default.homeDirectoryForCurrentUser.path as NSString)
             .appendingPathComponent(".macinstall/profile.yaml")
         profilePath = defaultPath
@@ -68,10 +72,11 @@ class AppStore: ObservableObject {
         try? yaml.write(to: url, atomically: true, encoding: .utf8)
 
         // Always sync to cloud when signed in — not just when cloudSyncEnabled
-        if let session = authService?.session {
-            Task { try? await SupabaseService().upsertProfile(
+        Task {
+            guard let session = await authService?.validSession() else { return }
+            try? await SupabaseService().upsertProfile(
                 accessToken: session.accessToken, userId: session.userId, yaml: yaml
-            )}
+            )
         }
     }
 
@@ -143,7 +148,7 @@ class AppStore: ObservableObject {
     }
 
     private func syncInstalledToCloud() async {
-        guard let session = authService?.session else { return }
+        guard let session = await authService?.validSession() else { return }
         let installedIds = installStatus.compactMap { id, status in status == .installed ? id : nil }
         try? await SupabaseService().upsertInstalledApps(
             accessToken: session.accessToken,
@@ -171,7 +176,7 @@ class AppStore: ObservableObject {
     }
 
     private func pollCloudSync() async {
-        guard let session = authService?.session else { return }
+        guard let session = await authService?.validSession() else { return }
 
         // Pull latest profile from cloud
         if let cloudYaml = try? await SupabaseService().fetchProfile(accessToken: session.accessToken),
@@ -235,7 +240,7 @@ class AppStore: ObservableObject {
     }
 
     func checkAndProcessUninstallQueue() async {
-        guard let session = authService?.session else { return }
+        guard let session = await authService?.validSession() else { return }
         let queue = (try? await SupabaseService().fetchUninstallQueue(accessToken: session.accessToken)) ?? []
         guard !queue.isEmpty else { return }
         // Clear first — prevents re-entry if detectInstalled() triggers this again mid-uninstall
@@ -293,9 +298,9 @@ class AppStore: ObservableObject {
     }
 
     private func saveCustomPacksToCloud() {
-        guard let session = authService?.session else { return }
         let packs = customPacks
         Task {
+            guard let session = await authService?.validSession() else { return }
             try? await SupabaseService().upsertCustomPacks(
                 accessToken: session.accessToken,
                 userId: session.userId,
@@ -311,10 +316,22 @@ class AppStore: ObservableObject {
             profile[id] = true
         }
         saveProfile()
-        if let session = authService?.session {
-            Task { try? await SupabaseService().upsertAppliedPackId(
+        Task {
+            guard let session = await authService?.validSession() else { return }
+            try? await SupabaseService().upsertAppliedPackId(
                 accessToken: session.accessToken, userId: session.userId, packId: packId
-            )}
+            )
+        }
+    }
+
+    // MARK: - Profile File
+
+    func ensureProfileFileExists() {
+        let url = URL(fileURLWithPath: profilePath)
+        let dir = url.deletingLastPathComponent()
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        if !FileManager.default.fileExists(atPath: profilePath) {
+            try? "version: 1\napps: []\n".write(toFile: profilePath, atomically: true, encoding: .utf8)
         }
     }
 
@@ -332,25 +349,7 @@ class AppStore: ObservableObject {
 
     @discardableResult
     private func runCommand(_ path: String, args: [String]) async -> String {
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: path)
-                process.arguments = args
-                let stdoutPipe = Pipe()
-                let stderrPipe = Pipe()
-                process.standardOutput = stdoutPipe
-                process.standardError = stderrPipe
-                do {
-                    try process.run()
-                    process.waitUntilExit()
-                    let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-                    continuation.resume(returning: String(data: data, encoding: .utf8) ?? "")
-                } catch {
-                    continuation.resume(returning: "")
-                }
-            }
-        }
+        await shell.run(path, arguments: args).output
     }
 
     // MARK: - Computed helpers

@@ -9,6 +9,14 @@ struct SupabaseSession: Codable {
     let userId: String
     let fullName: String?
     let avatarURL: String?
+    /// Unix timestamp when the access token expires (from JWT `exp` claim).
+    let expiresAt: TimeInterval?
+
+    /// True if the access token has expired or will expire within 5 minutes.
+    var isExpired: Bool {
+        guard let expiresAt else { return true }
+        return Date().timeIntervalSince1970 >= (expiresAt - 300)
+    }
 }
 
 @MainActor
@@ -28,8 +36,8 @@ class AuthService: NSObject, ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        let verifier = makeCodeVerifier()
-        let challenge = makeCodeChallenge(from: verifier)
+        let verifier = generateCodeVerifier()
+        let challenge = codeChallenge(for: verifier)
 
         var components = URLComponents(string: "\(SupabaseConfig.supabaseURL)/auth/v1/authorize")!
         components.queryItems = [
@@ -88,12 +96,66 @@ class AuthService: NSObject, ObservableObject {
     }
 
     func restoreSession() {
-        session = loadFromKeychain()
+        guard let saved = loadFromKeychain() else { return }
+        session = saved
+        // Immediately refresh — the stored access token is likely expired
+        Task { await refreshAccessToken() }
+    }
+
+    /// Refresh the access token using the stored refresh token.
+    /// Updates the session in memory and keychain. Signs out on failure.
+    @discardableResult
+    func refreshAccessToken() async -> Bool {
+        guard let current = session else { return false }
+
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/auth/v1/token?grant_type=refresh_token") else {
+            return false
+        }
+
+        let body = ["refresh_token": current.refreshToken]
+        guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else { return false }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.httpBody = bodyData
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+
+            guard status < 300,
+                  let json    = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                  let access  = json["access_token"]  as? String,
+                  let refresh = json["refresh_token"] as? String
+            else {
+                print("[Auth] Token refresh failed (HTTP \(status)) — signing out")
+                signOut()
+                return false
+            }
+
+            let refreshed = SupabaseSession(
+                accessToken: access,
+                refreshToken: refresh,
+                userId: current.userId,
+                fullName: current.fullName,
+                avatarURL: current.avatarURL,
+                expiresAt: expirationTime(fromJWT: access)
+            )
+            saveToKeychain(refreshed)
+            session = refreshed
+            print("[Auth] Token refreshed successfully")
+            return true
+        } catch {
+            print("[Auth] Token refresh error: \(error.localizedDescription)")
+            return false
+        }
     }
 
     // MARK: - PKCE Helpers
 
-    private func makeCodeVerifier() -> String {
+    private func generateCodeVerifier() -> String {
         var bytes = [UInt8](repeating: 0, count: 32)
         _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
         return Data(bytes).base64EncodedString()
@@ -102,7 +164,7 @@ class AuthService: NSObject, ObservableObject {
             .replacingOccurrences(of: "=", with: "")
     }
 
-    private func makeCodeChallenge(from verifier: String) -> String {
+    private func codeChallenge(for verifier: String) -> String {
         let digest = SHA256.hash(data: Data(verifier.utf8))
         return Data(digest).base64EncodedString()
             .replacingOccurrences(of: "+", with: "-")
@@ -145,7 +207,8 @@ class AuthService: NSObject, ObservableObject {
             let metadata  = user["user_metadata"] as? [String: Any]
             let fullName  = metadata?["full_name"]  as? String
             let avatarURL = metadata?["avatar_url"] as? String
-            let newSession = SupabaseSession(accessToken: access, refreshToken: refresh, userId: userId, fullName: fullName, avatarURL: avatarURL)
+            let expiresAt = expirationTime(fromJWT: access)
+            let newSession = SupabaseSession(accessToken: access, refreshToken: refresh, userId: userId, fullName: fullName, avatarURL: avatarURL, expiresAt: expiresAt)
             saveToKeychain(newSession)
             session = newSession
             isLoading = false
@@ -153,6 +216,36 @@ class AuthService: NSObject, ObservableObject {
             isLoading = false
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Returns a valid (non-expired) session, refreshing the token if needed.
+    /// Returns nil if refresh fails (user will be signed out).
+    func validSession() async -> SupabaseSession? {
+        guard let current = session else { return nil }
+        if current.isExpired {
+            print("[Auth] Token expired or expiring soon — refreshing")
+            let ok = await refreshAccessToken()
+            return ok ? session : nil
+        }
+        return current
+    }
+
+    // MARK: - JWT Helpers
+
+    /// Extract the `exp` claim from a JWT's base64url-encoded payload.
+    private func expirationTime(fromJWT token: String) -> TimeInterval? {
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+        var payload = String(parts[1])
+        // base64url → base64
+        payload = payload.replacingOccurrences(of: "-", with: "+")
+                         .replacingOccurrences(of: "_", with: "/")
+        // Pad to multiple of 4
+        while payload.count % 4 != 0 { payload += "=" }
+        guard let data = Data(base64Encoded: payload),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let exp = json["exp"] as? TimeInterval else { return nil }
+        return exp
     }
 
     // MARK: - Apple Sign In (future — requires Apple Developer account + capability)

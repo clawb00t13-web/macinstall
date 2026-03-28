@@ -1,6 +1,12 @@
 import Foundation
 
-struct SupabaseService {
+/// Protocol for mackup backup storage operations. Abstracted for testability.
+protocol MackupBackupStoring: Sendable {
+    func fetchMackupBackup(accessToken: String) async throws -> String
+    func upsertMackupBackup(accessToken: String, userId: String, archive: String) async throws
+}
+
+struct SupabaseService: MackupBackupStoring {
     /// Fetch profile YAML from Supabase. Returns empty string if no row exists.
     func fetchProfile(accessToken: String) async throws -> String {
         guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?select=profile_yaml") else {

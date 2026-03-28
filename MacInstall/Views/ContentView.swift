@@ -57,6 +57,7 @@ struct MenuBarView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Sign out")
+                    .accessibilityLabel("Sign out")
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
@@ -119,7 +120,7 @@ struct MenuBarView: View {
                     Spacer()
                     if store.isDetecting {
                         ProgressView()
-                            .scaleEffect(0.7)
+                            .controlSize(.small)
                     }
                 }
                 .padding(.horizontal, 12)

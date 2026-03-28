@@ -133,7 +133,7 @@ struct CreatePackSheet: View {
                         .multilineTextAlignment(.center)
                         .frame(width: 50)
                         .textFieldStyle(.roundedBorder)
-                        .onChange(of: icon) { newValue in
+                        .onChange(of: icon) { _, newValue in
                             // Keep only last character
                             let chars = Array(newValue)
                             if chars.count > 1 {
@@ -254,6 +254,11 @@ struct PackCustomizeSheet: View {
         _selected = State(initialValue: Set(pack.appIds))
     }
 
+    /// Prefiltered apps matching the pack's appIds — avoids inline filtering in ForEach.
+    private var packApps: [CatalogApp] {
+        pack.appIds.compactMap { id in store.apps.first(where: { $0.id == id }) }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -327,17 +332,15 @@ struct PackCustomizeSheet: View {
             Divider()
 
             // App list
-            List(pack.appIds, id: \.self) { id in
-                if let app = store.apps.first(where: { $0.id == id }) {
-                    PackAppRow(app: app, isSelected: selected.contains(id)) {
-                        if selected.contains(id) {
-                            selected.remove(id)
-                        } else {
-                            selected.insert(id)
-                        }
+            List(packApps) { app in
+                PackAppRow(app: app, isSelected: selected.contains(app.id)) {
+                    if selected.contains(app.id) {
+                        selected.remove(app.id)
+                    } else {
+                        selected.insert(app.id)
                     }
-                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
                 }
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
             .listStyle(.plain)
 
@@ -380,45 +383,48 @@ struct PackAppRow: View {
     var status: InstallStatus { store.installStatus[app.id] ?? .unknown }
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-                .font(.system(size: 18))
-                .onTapGesture { onToggle() }
+        Button(action: onToggle) {
+            HStack(spacing: 10) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .font(.system(size: 18))
 
-            RoundedRectangle(cornerRadius: 6)
-                .fill(Color.accentColor.opacity(0.12))
-                .frame(width: 30, height: 30)
-                .overlay {
-                    Text(String(app.name.prefix(1)))
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color.accentColor.opacity(0.12))
+                    .frame(width: 30, height: 30)
+                    .overlay {
+                        Text(String(app.name.prefix(1)))
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(Color.accentColor)
+                    }
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(app.name)
+                        .font(.system(size: 13, weight: .medium))
+                    Text(app.description)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
-            VStack(alignment: .leading, spacing: 1) {
-                Text(app.name)
-                    .font(.system(size: 13, weight: .medium))
-                Text(app.description)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            }
+                Spacer()
 
-            Spacer()
-
-            if status == .installed {
-                Text("Installed")
-                    .font(.caption2)
-                    .foregroundStyle(.green)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.green.opacity(0.1))
-                    .clipShape(Capsule())
+                if status == .installed {
+                    Text("Installed")
+                        .font(.caption2)
+                        .foregroundStyle(.green)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.green.opacity(0.1))
+                        .clipShape(Capsule())
+                }
             }
+            .contentShape(Rectangle())
+            .opacity(isSelected ? 1 : 0.5)
         }
-        .contentShape(Rectangle())
-        .onTapGesture { onToggle() }
-        .opacity(isSelected ? 1 : 0.5)
+        .buttonStyle(.plain)
+        .accessibilityLabel("\(app.name), \(isSelected ? "selected" : "not selected")")
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -480,6 +486,7 @@ struct StarterPackCard: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Delete \(pack.name)")
                 }
             }
 

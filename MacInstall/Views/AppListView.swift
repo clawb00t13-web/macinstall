@@ -19,6 +19,7 @@ struct AppListView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.plain)
+                    .accessibilityLabel("Clear search")
                 }
             }
             .padding(8)
@@ -65,7 +66,7 @@ struct AppListView: View {
                 if store.isDetecting {
                     HStack(spacing: 6) {
                         ProgressView()
-                            .scaleEffect(0.7)
+                            .controlSize(.small)
                         Text("Detecting...")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -185,6 +186,7 @@ struct AppRowView: View {
                 Circle()
                     .fill(statusColor)
                     .frame(width: 7, height: 7)
+                    .accessibilityHidden(true)
                 Text(statusText)
                     .font(.caption)
                     .foregroundStyle(statusColor)
@@ -200,8 +202,10 @@ struct AppRowView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Uninstall \(app.name)")
+                    .accessibilityLabel("Uninstall \(app.name)")
                 }
             }
+            .accessibilityElement(children: .combine)
         }
         .contentShape(Rectangle())
         .alert("Uninstall \(app.name)?", isPresented: $showingUninstallAlert) {

@@ -14,6 +14,17 @@ class MackupService: ObservableObject {
     @Published var statusMessage: String?
     @Published var errorMessage: String?
 
+    private let shell: ShellRunning
+    private let backupStore: MackupBackupStoring
+
+    init(
+        shell: ShellRunning = ShellRunner(),
+        backupStore: MackupBackupStoring = SupabaseService()
+    ) {
+        self.shell = shell
+        self.backupStore = backupStore
+    }
+
     private let stagingDir: String = {
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         return (home as NSString).appendingPathComponent(".macinstall/mackup-staging")
@@ -36,9 +47,8 @@ class MackupService: ObservableObject {
 
     var isInstalled: Bool { mackupPath != nil }
 
-    /// Maps MacInstall catalog app IDs → Mackup app names.
-    /// Only apps that Mackup knows about are listed here.
-    private static let catalogToMackup: [String: String] = [
+    /// Mackup app name for each catalog app ID. Only apps Mackup supports are listed.
+    static let mackupNames: [String: String] = [
         "visual-studio-code": "vscode",
         "cursor":             "cursor",
         "iterm2":             "iterm2",
@@ -66,12 +76,12 @@ class MackupService: ObservableObject {
     // MARK: - Public API
 
     /// Backup configs for installed catalog apps → tar.gz → Supabase.
-    /// `installedAppIds` should be the IDs of apps with `.installed` status.
-    func backupToSupabase(accessToken: String, userId: String, installedAppIds: [String]) async {
+    /// - Parameter installedApps: IDs of apps with `.installed` status.
+    func backupToSupabase(accessToken: String, userId: String, installedApps: [String]) async {
         isRunning = true
         errorMessage = nil
 
-        let mackupApps = installedAppIds.compactMap { Self.catalogToMackup[$0] }
+        let mackupApps = installedApps.compactMap { Self.mackupNames[$0] }
         if mackupApps.isEmpty {
             statusMessage = "No installed apps have Mackup support"
             isRunning = false
@@ -105,7 +115,7 @@ class MackupService: ObservableObject {
         statusMessage = "Uploading \(sizeMB) MB (\(mackupApps.count) apps)..."
 
         do {
-            try await SupabaseService().upsertMackupBackup(
+            try await backupStore.upsertMackupBackup(
                 accessToken: accessToken, userId: userId,
                 archive: archiveData.base64EncodedString()
             )
@@ -119,16 +129,16 @@ class MackupService: ObservableObject {
     }
 
     /// Restore configs from Supabase → untar → mackup restore.
-    func restoreFromSupabase(accessToken: String, userId: String, installedAppIds: [String]) async {
+    func restoreFromSupabase(accessToken: String, userId: String, installedApps: [String]) async {
         isRunning = true
         errorMessage = nil
         statusMessage = "Downloading from Supabase..."
 
-        let mackupApps = installedAppIds.compactMap { Self.catalogToMackup[$0] }
+        let mackupApps = installedApps.compactMap { Self.mackupNames[$0] }
         writeMackupConfig(apps: mackupApps)
 
         do {
-            let b64 = try await SupabaseService().fetchMackupBackup(accessToken: accessToken)
+            let b64 = try await backupStore.fetchMackupBackup(accessToken: accessToken)
             if b64.isEmpty {
                 errorMessage = "No backup found in Supabase"
                 isRunning = false
@@ -202,11 +212,11 @@ class MackupService: ObservableObject {
 
             // Kill the app first so it doesn't overwrite our import
             let appName = domain.components(separatedBy: ".").last ?? ""
-            _ = await shell("/usr/bin/killall", args: [appName])
+            _ = await shell.run("/usr/bin/killall", arguments: [appName])
 
             // defaults import writes the plist into cfprefsd directly
-            let ok = await shell("/usr/bin/defaults", args: ["import", domain, fullPath])
-            if ok {
+            let result = await shell.run("/usr/bin/defaults", arguments: ["import", domain, fullPath])
+            if result.success {
                 applied += 1
                 print("[Mackup] defaults import \(domain) ← \(relativePath)")
             } else {
@@ -216,7 +226,7 @@ class MackupService: ObservableObject {
 
         if applied > 0 {
             // Restart cfprefsd so all apps pick up the new prefs
-            _ = await shell("/usr/bin/killall", args: ["cfprefsd"])
+            _ = await shell.run("/usr/bin/killall", arguments: ["cfprefsd"])
             print("[Mackup] Killed cfprefsd — \(applied) plists imported")
         }
     }
@@ -233,36 +243,17 @@ class MackupService: ObservableObject {
     // MARK: - Tar/Gzip
 
     private func compressStagingDir() async -> Bool {
-        await shell("/usr/bin/tar", args: ["-czf", archivePath, "-C", stagingDir, "."])
+        await shell.run("/usr/bin/tar", arguments: ["-czf", archivePath, "-C", stagingDir, "."]).success
     }
 
     private func extractToStagingDir() async -> Bool {
         let fm = FileManager.default
         try? fm.removeItem(atPath: stagingDir)
         try? fm.createDirectory(atPath: stagingDir, withIntermediateDirectories: true)
-        return await shell("/usr/bin/tar", args: ["-xzf", archivePath, "-C", stagingDir])
+        return await shell.run("/usr/bin/tar", arguments: ["-xzf", archivePath, "-C", stagingDir]).success
     }
 
-    // MARK: - Shell
-
-    private func shell(_ path: String, args: [String]) async -> Bool {
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: path)
-                process.arguments = args
-                process.standardOutput = Pipe()
-                process.standardError = Pipe()
-                do {
-                    try process.run()
-                    process.waitUntilExit()
-                    continuation.resume(returning: process.terminationStatus == 0)
-                } catch {
-                    continuation.resume(returning: false)
-                }
-            }
-        }
-    }
+    // MARK: - Mackup Process
 
     @discardableResult
     private func runMackup(args: [String]) async -> Bool {
@@ -271,32 +262,10 @@ class MackupService: ObservableObject {
             return false
         }
 
-        let success: Bool = await withCheckedContinuation { continuation in
-            DispatchQueue.global(qos: .utility).async {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: path)
-                process.arguments = args
-                let stdoutPipe = Pipe()
-                let stderrPipe = Pipe()
-                process.standardOutput = stdoutPipe
-                process.standardError = stderrPipe
-                let stdinPipe = Pipe()
-                stdinPipe.fileHandleForWriting.write("yes\n".data(using: .utf8)!)
-                stdinPipe.fileHandleForWriting.closeFile()
-                process.standardInput = stdinPipe
-                do {
-                    try process.run()
-                    process.waitUntilExit()
-                    continuation.resume(returning: process.terminationStatus == 0)
-                } catch {
-                    continuation.resume(returning: false)
-                }
-            }
-        }
-
-        if !success {
+        let result = await shell.run(path, arguments: args, standardInput: "yes\n")
+        if !result.success {
             errorMessage = "mackup \(args.joined(separator: " ")) failed"
         }
-        return success
+        return result.success
     }
 }

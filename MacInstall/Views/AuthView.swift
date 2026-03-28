@@ -10,6 +10,7 @@ struct AuthView: View {
             Image(systemName: "square.and.arrow.down")
                 .font(.system(size: 60))
                 .foregroundStyle(Color.accentColor)
+                .accessibilityHidden(true)
 
             Text("MacInstall")
                 .font(.largeTitle.bold())
@@ -20,16 +21,22 @@ struct AuthView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
 
-            GoogleSignInButton()
-                .disabled(authService.isLoading)
-                .onTapGesture { authService.signInWithGoogle() }
-                .overlay {
-                    if authService.isLoading {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(.background.opacity(0.6))
-                        ProgressView().progressViewStyle(.circular)
-                    }
+            Button {
+                authService.signInWithGoogle()
+            } label: {
+                GoogleSignInLabel()
+            }
+            .buttonStyle(.plain)
+            .disabled(authService.isLoading)
+            .accessibilityLabel("Sign in with Google")
+            .overlay {
+                if authService.isLoading {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(.background.opacity(0.6))
+                    ProgressView()
+                        .controlSize(.small)
                 }
+            }
 
             if let error = authService.errorMessage {
                 Text(error)
@@ -48,15 +55,14 @@ struct AuthView: View {
 
 // MARK: - Google Button
 
-private struct GoogleSignInButton: View {
+private struct GoogleSignInLabel: View {
     var body: some View {
         HStack(spacing: 10) {
-            // Google "G" logo approximated with coloured letters
             Text("G")
-                .font(.system(size: 16, weight: .bold))
+                .font(.body.weight(.bold))
                 .foregroundStyle(Color(red: 0.26, green: 0.52, blue: 0.96))
             Text("Sign in with Google")
-                .font(.system(size: 14, weight: .medium))
+                .font(.body.weight(.medium))
                 .foregroundStyle(.primary)
         }
         .frame(width: 220, height: 44)
