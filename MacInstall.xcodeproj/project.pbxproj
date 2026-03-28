@@ -21,9 +21,7 @@
 		AA02CC02AA024CC0AA02CC02 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */; };
 		AA03CC03AA034CC0AA03CC03 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */; };
 		AA04CC04AA044CC0AA04CC04 /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA04CC04FA044CC0FA04CC04 /* AuthView.swift */; };
-		BB01AA01BB01AA01BB01AA01 /* AppConfigs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC01AA01CC01AA01CC01AA01 /* AppConfigs.swift */; };
-		BB02AA02BB02AA02BB02AA02 /* ConfigWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC02AA02CC02AA02CC02AA02 /* ConfigWatcher.swift */; };
-		BB03AA03BB03AA03BB03AA03 /* ConfigSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC03AA03CC03AA03CC03AA03 /* ConfigSheet.swift */; };
+		BB04AA04BB04AA04BB04AA04 /* MackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC04AA04CC04AA04CC04AA04 /* MackupService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,9 +41,7 @@
 		FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
 		FA04CC04FA044CC0FA04CC04 /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthView.swift; sourceTree = "<group>"; };
-		CC01AA01CC01AA01CC01AA01 /* AppConfigs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfigs.swift; sourceTree = "<group>"; };
-		CC02AA02CC02AA02CC02AA02 /* ConfigWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigWatcher.swift; sourceTree = "<group>"; };
-		CC03AA03CC03AA03CC03AA03 /* ConfigSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigSheet.swift; sourceTree = "<group>"; };
+		CC04AA04CC04AA04CC04AA04 /* MackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MackupService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,7 +83,6 @@
 				2957E1EECC27486A9FDAF89D /* AppCatalog.swift */,
 				A6471195F7344EDD8535D188 /* Profile.swift */,
 				FC54AEEC22954099B5937C4A /* AppStore.swift */,
-				CC01AA01CC01AA01CC01AA01 /* AppConfigs.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -100,7 +95,6 @@
 				22C127A57622410DBC26BA60 /* StarterPacksView.swift */,
 				924C3158E8504B238266A93D /* SettingsView.swift */,
 				FA04CC04FA044CC0FA04CC04 /* AuthView.swift */,
-				CC03AA03CC03AA03CC03AA03 /* ConfigSheet.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -113,7 +107,7 @@
 				FA02CC02FA024CC0FA02CC02 /* SupabaseConfig.swift */,
 				FA01CC01FA014CC0FA01CC01 /* AuthService.swift */,
 				FA03CC03FA034CC0FA03CC03 /* SupabaseService.swift */,
-				CC02AA02CC02AA02CC02AA02 /* ConfigWatcher.swift */,
+				CC04AA04CC04AA04CC04AA04 /* MackupService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -201,9 +195,7 @@
 				AA01CC01AA014CC0AA01CC01 /* AuthService.swift in Sources */,
 				AA03CC03AA034CC0AA03CC03 /* SupabaseService.swift in Sources */,
 				AA04CC04AA044CC0AA04CC04 /* AuthView.swift in Sources */,
-				BB01AA01BB01AA01BB01AA01 /* AppConfigs.swift in Sources */,
-				BB02AA02BB02AA02BB02AA02 /* ConfigWatcher.swift in Sources */,
-				BB03AA03BB03AA03BB03AA03 /* ConfigSheet.swift in Sources */,
+				BB04AA04BB04AA04BB04AA04 /* MackupService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

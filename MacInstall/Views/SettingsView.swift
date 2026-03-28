@@ -2,6 +2,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var store: AppStore
+    @EnvironmentObject var authService: AuthService
+    @StateObject private var mackup = MackupService()
     @State private var showProfilePathEditor = false
 
     var body: some View {
@@ -97,6 +99,89 @@ struct SettingsView: View {
                             .padding(8)
                             .background(Color.orange.opacity(0.08))
                             .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                    }
+                    .padding(4)
+                }
+
+                // Mackup Config Sync section
+                GroupBox {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("App Config Sync", systemImage: "arrow.triangle.2.circlepath")
+                            .font(.headline)
+                            .padding(.bottom, 4)
+
+                        Text("Sync app configs (Rectangle, iTerm2, VS Code, etc.) between Macs via Mackup + Supabase.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        if !mackup.isInstalled {
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundStyle(.orange)
+                                Text("Mackup not installed. Run: brew install mackup")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
+                            .background(Color.orange.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        } else if authService.session == nil {
+                            HStack(spacing: 6) {
+                                Image(systemName: "person.crop.circle.badge.exclamationmark")
+                                    .foregroundStyle(.orange)
+                                Text("Sign in to sync configs between Macs.")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(8)
+                            .background(Color.orange.opacity(0.08))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        } else {
+                            let installedIds = store.installStatus
+                                .filter { $0.value == .installed }
+                                .map(\.key)
+
+                            HStack(spacing: 12) {
+                                Button {
+                                    guard let s = authService.session else { return }
+                                    Task { await mackup.backupToSupabase(accessToken: s.accessToken, userId: s.userId, installedAppIds: installedIds) }
+                                } label: {
+                                    Label("Backup Configs", systemImage: "arrow.up.circle")
+                                        .font(.callout)
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                                .disabled(mackup.isRunning)
+
+                                Button {
+                                    guard let s = authService.session else { return }
+                                    Task { await mackup.restoreFromSupabase(accessToken: s.accessToken, userId: s.userId, installedAppIds: installedIds) }
+                                } label: {
+                                    Label("Restore Configs", systemImage: "arrow.down.circle")
+                                        .font(.callout)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.small)
+                                .disabled(mackup.isRunning)
+
+                                if mackup.isRunning {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                }
+                            }
+
+                            if let error = mackup.errorMessage {
+                                Text(error)
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+
+                            if let msg = mackup.statusMessage, mackup.errorMessage == nil {
+                                Text(msg)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .padding(4)

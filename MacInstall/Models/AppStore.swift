@@ -21,9 +21,6 @@ class AppStore: ObservableObject {
     @Published var isInstalling: Bool = false
     @Published var customPacks: [StarterPack] = []
     @Published var appliedPackId: String? = nil
-    @Published var appConfigs: [String: [String: String]] = [:]  // appId -> key -> file content (plain text)
-    private let configWatcher = ConfigWatcher()
-
     var authService: AuthService? = nil
 
     private var syncTask: Task<Void, Never>?
@@ -36,15 +33,6 @@ class AppStore: ObservableObject {
         loadProfile()
         Task { await detectInstalled() }
         startSyncPolling()
-        configWatcher.onChange = { [weak self] appId, key in
-            guard let self else { return }
-            Task { @MainActor in
-                print("[Config] Auto-capturing \(appId):\(key) after file change")
-                if let app = self.apps.first(where: { $0.id == appId }) {
-                    self.captureConfig(for: app, key: key)
-                }
-            }
-        }
     }
 
     func loadCatalog() {
@@ -94,10 +82,6 @@ class AppStore: ObservableObject {
         }
         customPacks = (try? await SupabaseService().fetchCustomPacks(accessToken: accessToken)) ?? []
         appliedPackId = try? await SupabaseService().fetchAppliedPackId(accessToken: accessToken)
-        if let configs = try? await SupabaseService().fetchAppConfigs(accessToken: accessToken) {
-            appConfigs = configs
-            startWatchingCapturedConfigs()
-        }
     }
 
     private func buildYAML() -> String {
@@ -228,13 +212,6 @@ class AppStore: ObservableObject {
             }
         }
 
-        // Sync app configs
-        if let cloudConfigs = try? await SupabaseService().fetchAppConfigs(accessToken: session.accessToken) {
-            if cloudConfigs.keys.sorted() != appConfigs.keys.sorted() {
-                appConfigs = cloudConfigs
-                startWatchingCapturedConfigs()
-            }
-        }
     }
 
     // MARK: - Uninstall
@@ -297,9 +274,6 @@ class AppStore: ObservableObject {
                 _ = await runCommand(masPath, args: ["install", "\(masId)"])
             }
             installStatus[app.id] = checkAppInstalled(app)
-            if installStatus[app.id] == .installed {
-                applyConfigsAfterInstall(for: app)
-            }
         }
         await syncInstalledToCloud()
     }
@@ -343,79 +317,6 @@ class AppStore: ObservableObject {
             )}
         }
     }
-
-    // MARK: - Config Sync
-
-    func captureConfig(for app: CatalogApp, key: String) {
-        guard let cp = appConfigPaths[app.id]?.first(where: { $0.key == key }) else { return }
-        guard cp.exists else { return }
-        guard let content = try? String(contentsOfFile: cp.resolvedPath, encoding: .utf8) else { return }
-        if appConfigs[app.id] == nil { appConfigs[app.id] = [:] }
-        appConfigs[app.id]![key] = content
-        saveAppConfigsToCloud()
-        // Start watching this file if not already
-        configWatcher.watch(appId: app.id, paths: [cp])
-        print("[Config] Captured \(app.id):\(key) (\(content.count) chars)")
-    }
-
-    func captureAllConfigs(for app: CatalogApp) {
-        guard let paths = appConfigPaths[app.id] else { return }
-        for cp in paths {
-            guard cp.exists else { continue }
-            guard let content = try? String(contentsOfFile: cp.resolvedPath, encoding: .utf8) else { continue }
-            if appConfigs[app.id] == nil { appConfigs[app.id] = [:] }
-            appConfigs[app.id]![cp.key] = content
-        }
-        saveAppConfigsToCloud()
-        startWatchingCapturedConfigs()
-    }
-
-    func applyConfig(for app: CatalogApp, key: String) {
-        guard let content = appConfigs[app.id]?[key],
-              let cp = appConfigPaths[app.id]?.first(where: { $0.key == key }) else { return }
-        let url = URL(fileURLWithPath: cp.resolvedPath)
-        let dir = url.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        try? content.write(to: url, atomically: true, encoding: .utf8)
-        print("[Config] Applied \(app.id):\(key)")
-    }
-
-    func applyAllConfigs(for app: CatalogApp) {
-        guard let keys = appConfigs[app.id]?.keys else { return }
-        for key in keys { applyConfig(for: app, key: key) }
-    }
-
-    // Called after install to auto-apply stored configs
-    private func applyConfigsAfterInstall(for app: CatalogApp) {
-        guard appConfigs[app.id] != nil else { return }
-        applyAllConfigs(for: app)
-        print("[Config] Auto-applied configs for \(app.id) after install")
-    }
-
-    private func startWatchingCapturedConfigs() {
-        configWatcher.stopAll()
-        for (appId, keyMap) in appConfigs {
-            guard !keyMap.isEmpty, let paths = appConfigPaths[appId] else { continue }
-            let capturedPaths = paths.filter { keyMap[$0.key] != nil }
-            if !capturedPaths.isEmpty {
-                configWatcher.watch(appId: appId, paths: capturedPaths)
-            }
-        }
-    }
-
-    private func saveAppConfigsToCloud() {
-        guard let session = authService?.session else { return }
-        let configs = appConfigs
-        Task {
-            try? await SupabaseService().upsertAppConfigs(
-                accessToken: session.accessToken,
-                userId: session.userId,
-                configs: configs
-            )
-        }
-    }
-
-    var configuredAppCount: Int { appConfigs.keys.count }
 
     // MARK: - Helpers
 

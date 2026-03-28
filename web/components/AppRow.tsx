@@ -26,10 +26,9 @@ interface AppRowProps {
   app: App
   installed: boolean
   onUninstall: (id: string) => void
-  configCaptured?: boolean
 }
 
-export default function AppRow({ app, installed, onUninstall, configCaptured }: AppRowProps) {
+export default function AppRow({ app, installed, onUninstall }: AppRowProps) {
   const method = getInstallMethod(app)
   const badge = method ? BADGE[method] : null
   const letter = app.name.charAt(0).toUpperCase()
@@ -59,11 +58,6 @@ export default function AppRow({ app, installed, onUninstall, configCaptured }: 
             {installed && (
               <span className="bg-green-900/50 text-green-400 text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0">
                 ✓ Installed
-              </span>
-            )}
-            {configCaptured && (
-              <span className="bg-blue-900/50 text-blue-400 text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0" title="Config synced">
-                ⚙ Config
               </span>
             )}
             {installed && !queued && (
