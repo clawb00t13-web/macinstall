@@ -14,5 +14,6 @@ export interface UserProfile {
   uninstall_queue: string[]
   custom_packs: CustomPack[]
   applied_pack_id: string | null
+  app_configs: Record<string, Record<string, string>> | null
   updated_at: string
 }

@@ -124,6 +124,48 @@ struct SupabaseService {
         _ = try await URLSession.shared.data(for: request)
     }
 
+    /// Fetch stored app configs: appId -> key -> file content.
+    func fetchAppConfigs(accessToken: String) async throws -> [String: [String: String]] {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?select=app_configs") else {
+            throw URLError(.badURL)
+        }
+        var request = URLRequest(url: url)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let rows = try JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        guard let raw = rows?.first?["app_configs"] as? [String: Any] else { return [:] }
+        var result: [String: [String: String]] = [:]
+        for (appId, val) in raw {
+            if let keyMap = val as? [String: String] {
+                result[appId] = keyMap
+            }
+        }
+        print("[Supabase] fetchAppConfigs → \(result.keys.count) apps")
+        return result
+    }
+
+    /// Upsert all captured app configs.
+    func upsertAppConfigs(accessToken: String, userId: String, configs: [String: [String: String]]) async throws {
+        guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?on_conflict=user_id") else {
+            throw URLError(.badURL)
+        }
+        let body: [String: Any] = [
+            "user_id": userId,
+            "app_configs": configs,
+            "updated_at": ISO8601DateFormatter().string(from: Date())
+        ]
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json",             forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)",        forHTTPHeaderField: "Authorization")
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("resolution=merge-duplicates",  forHTTPHeaderField: "Prefer")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        _ = try await URLSession.shared.data(for: request)
+        print("[Supabase] upsertAppConfigs → \(configs.keys.count) apps")
+    }
+
     /// Fetch custom packs stored as JSONB in user_profiles.custom_packs.
     func fetchCustomPacks(accessToken: String) async throws -> [StarterPack] {
         guard let url = URL(string: "\(SupabaseConfig.supabaseURL)/rest/v1/user_profiles?select=custom_packs") else {

@@ -28,6 +28,7 @@ export default async function DashboardPage() {
       installedAppIds={profile?.installed_app_ids ?? []}
       initialCustomPacks={profile?.custom_packs ?? []}
       initialAppliedPackId={profile?.applied_pack_id ?? null}
+      initialAppConfigs={profile?.app_configs ?? {}}
     />
   )
 }

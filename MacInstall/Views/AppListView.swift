@@ -138,6 +138,9 @@ struct AppRowView: View {
     @EnvironmentObject var store: AppStore
     let app: CatalogApp
     @State private var showingUninstallAlert = false
+    @State private var showingConfigSheet = false
+    var hasConfigPaths: Bool { appConfigPaths[app.id] != nil }
+    var hasCapturedConfig: Bool { store.appConfigs[app.id] != nil }
 
     var status: InstallStatus { store.installStatus[app.id] ?? .unknown }
 
@@ -190,6 +193,18 @@ struct AppRowView: View {
                     .foregroundStyle(statusColor)
                     .frame(width: 80, alignment: .leading)
 
+                if hasConfigPaths {
+                    Button {
+                        showingConfigSheet = true
+                    } label: {
+                        Image(systemName: hasCapturedConfig ? "gearshape.fill" : "gearshape")
+                            .font(.caption)
+                            .foregroundStyle(hasCapturedConfig ? Color.accentColor : .secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(hasCapturedConfig ? "Config captured — click to manage" : "Capture app config")
+                }
+
                 if status == .installed {
                     Button {
                         showingUninstallAlert = true
@@ -211,6 +226,10 @@ struct AppRowView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This will remove \(app.name) from your Mac.")
+        }
+        .sheet(isPresented: $showingConfigSheet) {
+            ConfigSheet(app: app)
+                .environmentObject(store)
         }
     }
 }

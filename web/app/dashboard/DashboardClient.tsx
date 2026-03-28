@@ -21,11 +21,12 @@ interface DashboardClientProps {
   installedAppIds: string[]
   initialCustomPacks: CustomPack[]
   initialAppliedPackId: string | null
+  initialAppConfigs: Record<string, Record<string, string>>
 }
 
 type Tab = 'apps' | 'packs'
 
-export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds, initialCustomPacks, initialAppliedPackId }: DashboardClientProps) {
+export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds, initialCustomPacks, initialAppliedPackId, initialAppConfigs }: DashboardClientProps) {
   const [installedSet, setInstalledSet] = useState(() => new Set(installedAppIds))
   const [tab, setTab] = useState<Tab>('apps')
   const [category, setCategory] = useState('all')
@@ -33,6 +34,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
   const [profile, setProfile] = useState<ProfileState>(() => parseProfileYaml(initialYaml))
   const [customPacks, setCustomPacks] = useState<CustomPack[]>(initialCustomPacks)
   const [appliedPackId, setAppliedPackId] = useState<string | null>(initialAppliedPackId)
+  const [appConfigs] = useState(initialAppConfigs)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -210,6 +212,7 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                     app={app}
                     installed={installedSet.has(app.id)}
                     onUninstall={handleUninstall}
+                    configCaptured={!!appConfigs[app.id]}
                   />
                 ))
               )}
