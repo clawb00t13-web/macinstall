@@ -1,13 +1,19 @@
 import Foundation
 
-struct StarterPack: Identifiable {
+struct StarterPack: Identifiable, Codable {
     let id: String
     let name: String
     let description: String
     let icon: String
     let appIds: [String]
+    var isCustom: Bool = false
 
     var appCount: Int { appIds.count }
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, description, icon, appIds
+        // isCustom is NOT persisted — it's set by the caller
+    }
 }
 
 let starterPacks: [StarterPack] = [

@@ -19,6 +19,7 @@ class AppStore: ObservableObject {
     @Published var cloudSyncEnabled: Bool = false
     @Published var isDetecting: Bool = false
     @Published var isInstalling: Bool = false
+    @Published var customPacks: [StarterPack] = []
 
     var authService: AuthService? = nil
 
@@ -76,8 +77,10 @@ class AppStore: ObservableObject {
 
     func loadFromCloud(accessToken: String, userId: String) async {
         let yaml = (try? await SupabaseService().fetchProfile(accessToken: accessToken)) ?? ""
-        guard !yaml.isEmpty else { return }
-        profile = parseYAML(yaml)
+        if !yaml.isEmpty {
+            profile = parseYAML(yaml)
+        }
+        customPacks = (try? await SupabaseService().fetchCustomPacks(accessToken: accessToken)) ?? []
     }
 
     private func buildYAML() -> String {
@@ -193,6 +196,13 @@ class AppStore: ObservableObject {
         }
 
         await checkAndProcessUninstallQueue()
+
+        // Sync custom packs
+        if let fetched = try? await SupabaseService().fetchCustomPacks(accessToken: session.accessToken) {
+            if fetched.map(\.id) != customPacks.map(\.id) {
+                customPacks = fetched
+            }
+        }
     }
 
     // MARK: - Uninstall
@@ -261,9 +271,33 @@ class AppStore: ObservableObject {
 
     // MARK: - Starter Packs
 
-    func applyStarterPack(_ pack: StarterPack) {
+    func createCustomPack(name: String, icon: String, description: String, appIds: [String]) {
+        var pack = StarterPack(id: UUID().uuidString, name: name, description: description, icon: icon, appIds: appIds)
+        pack.isCustom = true
+        customPacks.insert(pack, at: 0)
+        saveCustomPacksToCloud()
+    }
+
+    func deleteCustomPack(id: String) {
+        customPacks.removeAll { $0.id == id }
+        saveCustomPacksToCloud()
+    }
+
+    private func saveCustomPacksToCloud() {
+        guard let session = authService?.session else { return }
+        let packs = customPacks
+        Task {
+            try? await SupabaseService().upsertCustomPacks(
+                accessToken: session.accessToken,
+                userId: session.userId,
+                packs: packs
+            )
+        }
+    }
+
+    func applyStarterPack(appIds: [String]) {
         profile = [:]
-        for id in pack.appIds {
+        for id in appIds {
             profile[id] = true
         }
         saveProfile()

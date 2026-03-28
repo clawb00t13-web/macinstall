@@ -44,18 +44,6 @@ struct AppListView: View {
             Divider()
                 .padding(.top, 4)
 
-            // Column header
-            HStack {
-                Spacer()
-                Text("In Profile")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    .padding(.trailing, 18)
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
-            .padding(.bottom, 2)
-
             // App list
             List(store.filteredApps) { app in
                 AppRowView(app: app)
@@ -151,17 +139,7 @@ struct AppRowView: View {
     let app: CatalogApp
     @State private var showingUninstallAlert = false
 
-    var isEnabled: Bool { store.profile[app.id] ?? (status == .installed) }
     var status: InstallStatus { store.installStatus[app.id] ?? .unknown }
-
-    var statusEmoji: String {
-        switch status {
-        case .installed: return "✅"
-        case .notInstalled: return "⬇️"
-        case .installing: return "🔄"
-        case .unknown: return "❓"
-        }
-    }
 
     var statusText: String {
         switch status {
@@ -183,7 +161,6 @@ struct AppRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            // App icon placeholder
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.accentColor.opacity(0.15))
                 .frame(width: 36, height: 36)
@@ -204,9 +181,10 @@ struct AppRowView: View {
 
             Spacer()
 
-            HStack(spacing: 6) {
-                Text(statusEmoji)
-                    .font(.caption)
+            HStack(spacing: 8) {
+                Circle()
+                    .fill(statusColor)
+                    .frame(width: 7, height: 7)
                 Text(statusText)
                     .font(.caption)
                     .foregroundStyle(statusColor)
@@ -223,19 +201,9 @@ struct AppRowView: View {
                     .buttonStyle(.plain)
                     .help("Uninstall \(app.name)")
                 }
-
-                Toggle("", isOn: Binding(
-                    get: { isEnabled },
-                    set: { _ in store.toggleApp(app.id) }
-                ))
-                .toggleStyle(.switch)
-                .labelsHidden()
-                .scaleEffect(0.8)
-                .help("Include in profile — will install on new Macs")
             }
         }
         .contentShape(Rectangle())
-        .opacity(isEnabled ? 1 : 0.65)
         .alert("Uninstall \(app.name)?", isPresented: $showingUninstallAlert) {
             Button("Uninstall", role: .destructive) {
                 Task { await store.uninstallApp(app) }

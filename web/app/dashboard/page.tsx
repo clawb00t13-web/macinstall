@@ -26,6 +26,7 @@ export default async function DashboardPage() {
       userEmail={session.user.email}
       initialYaml={profile?.profile_yaml ?? ''}
       installedAppIds={profile?.installed_app_ids ?? []}
+      initialCustomPacks={profile?.custom_packs ?? []}
     />
   )
 }

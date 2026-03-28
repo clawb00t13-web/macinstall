@@ -24,13 +24,11 @@ const BADGE: Record<string, { label: string; className: string }> = {
 
 interface AppRowProps {
   app: App
-  enabled: boolean
   installed: boolean
-  onToggle: (id: string, value: boolean) => void
   onUninstall: (id: string) => void
 }
 
-export default function AppRow({ app, enabled, installed, onToggle, onUninstall }: AppRowProps) {
+export default function AppRow({ app, installed, onUninstall }: AppRowProps) {
   const method = getInstallMethod(app)
   const badge = method ? BADGE[method] : null
   const letter = app.name.charAt(0).toUpperCase()
@@ -87,18 +85,6 @@ export default function AppRow({ app, enabled, installed, onToggle, onUninstall 
           </div>
           <p className="text-[#888] text-xs truncate mt-0.5">{app.description}</p>
         </div>
-
-        {/* Toggle */}
-        <button
-          role="switch"
-          aria-checked={enabled}
-          onClick={() => onToggle(app.id, !enabled)}
-          className={`relative w-10 h-6 rounded-full transition-colors flex-shrink-0 ${enabled ? 'bg-blue-500' : 'bg-[#333]'}`}
-        >
-          <span
-            className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-4' : 'translate-x-0'}`}
-          />
-        </button>
       </div>
 
       {confirming && (

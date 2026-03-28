@@ -8,7 +8,9 @@ import { parseProfileYaml, serializeProfileYaml, type ProfileState } from '@/lib
 import AppRow from '@/components/AppRow'
 import CategoryPills from '@/components/CategoryPills'
 import StarterPackCard from '@/components/StarterPackCard'
+import PackCreateModal from '@/components/PackCreateModal'
 import dynamic from 'next/dynamic'
+import type { CustomPack } from '@/lib/types'
 
 const SignOutButton = dynamic(() => import('@/components/SignOutButton'), { ssr: false })
 
@@ -17,17 +19,19 @@ interface DashboardClientProps {
   userEmail: string | undefined
   initialYaml: string
   installedAppIds: string[]
+  initialCustomPacks: CustomPack[]
 }
 
 type Tab = 'apps' | 'packs'
 
-export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds }: DashboardClientProps) {
+export default function DashboardClient({ userId, userEmail, initialYaml, installedAppIds, initialCustomPacks }: DashboardClientProps) {
   const [installedSet, setInstalledSet] = useState(() => new Set(installedAppIds))
   const [tab, setTab] = useState<Tab>('apps')
   const [category, setCategory] = useState('all')
   const [search, setSearch] = useState('')
   const [profile, setProfile] = useState<ProfileState>(() => parseProfileYaml(initialYaml))
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const [customPacks, setCustomPacks] = useState<CustomPack[]>(initialCustomPacks)
+  const [showCreateModal, setShowCreateModal] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -51,25 +55,22 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
   }, [userId])
 
   const persist = useCallback(async (state: ProfileState) => {
-    setSaveStatus('saving')
     const supabase = createClient()
-    const { error } = await supabase.from('user_profiles').upsert({
+    await supabase.from('user_profiles').upsert({
       user_id: userId,
       profile_yaml: serializeProfileYaml(state),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' })
-    setSaveStatus(error ? 'error' : 'saved')
-    setTimeout(() => setSaveStatus('idle'), 2000)
   }, [userId])
 
-  const handleToggle = useCallback((id: string, value: boolean) => {
-    setProfile((prev) => {
-      const next = { ...prev, [id]: value }
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => persist(next), 800)
-      return next
-    })
-  }, [persist])
+  const persistCustomPacks = useCallback(async (packs: CustomPack[]) => {
+    const supabase = createClient()
+    await supabase.from('user_profiles').upsert({
+      user_id: userId,
+      custom_packs: packs,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+  }, [userId])
 
   const handleUninstall = useCallback(async (id: string) => {
     const supabase = createClient()
@@ -98,10 +99,23 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
     })
   }, [persist])
 
-  const handleSave = useCallback(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    persist(profile)
-  }, [persist, profile])
+  const handleCreatePack = useCallback((data: Omit<CustomPack, 'id'>) => {
+    const newPack: CustomPack = { id: crypto.randomUUID(), ...data }
+    setCustomPacks(prev => {
+      const next = [newPack, ...prev]
+      persistCustomPacks(next)
+      return next
+    })
+    setShowCreateModal(false)
+  }, [persistCustomPacks])
+
+  const handleDeletePack = useCallback((id: string) => {
+    setCustomPacks(prev => {
+      const next = prev.filter(p => p.id !== id)
+      persistCustomPacks(next)
+      return next
+    })
+  }, [persistCustomPacks])
 
   const filtered = APPS.filter((app) => {
     const matchCat = category === 'all' || app.categories.includes(category)
@@ -111,7 +125,15 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
     return matchCat && matchSearch
   })
 
-  const enabledCount = Object.values(profile).filter(Boolean).length
+  // Merge custom packs into a StarterPack-compatible shape for StarterPackCard
+  const customPacksAsStarter = customPacks.map(cp => ({
+    id: cp.id,
+    name: cp.name,
+    description: cp.description,
+    tagline: cp.description,
+    icon: cp.icon,
+    appIds: cp.appIds,
+  }))
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#f5f5f5]">
@@ -174,44 +196,60 @@ export default function DashboardClient({ userId, userEmail, initialYaml, instal
                   <AppRow
                     key={app.id}
                     app={app}
-                    enabled={app.id in profile ? !!profile[app.id] : installedSet.has(app.id)}
                     installed={installedSet.has(app.id)}
-                    onToggle={handleToggle}
                     onUninstall={handleUninstall}
                   />
                 ))
               )}
             </div>
 
-            {/* Bottom bar */}
-            <div className="sticky bottom-0 mt-4 bg-[#0a0a0a]/90 backdrop-blur border-t border-[#1a1a1a] -mx-4 px-4 py-3 flex items-center justify-between">
-              <span className="text-[#555] text-sm">{enabledCount} app{enabledCount !== 1 ? 's' : ''} selected</span>
-              <div className="flex items-center gap-3">
-                {saveStatus === 'saving' && <span className="text-[#888] text-xs">Saving…</span>}
-                {saveStatus === 'saved' && <span className="text-green-400 text-xs">Saved</span>}
-                {saveStatus === 'error' && <span className="text-red-400 text-xs">Error saving</span>}
-                <button
-                  onClick={handleSave}
-                  disabled={saveStatus === 'saving'}
-                  className="bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white text-sm font-medium px-5 py-2 rounded-lg transition-colors"
-                >
-                  Save Profile
-                </button>
-              </div>
-            </div>
           </>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {STARTER_PACKS.map((pack) => (
-              <StarterPackCard
-                key={pack.id}
-                pack={pack}
-                onApply={handleApplyPack}
-              />
-            ))}
-          </div>
+          <>
+            {/* New Pack button */}
+            <div className="flex justify-end mb-4">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="bg-[#1a1a1a] hover:bg-[#222] border border-[#333] text-[#f5f5f5] text-xs font-medium px-4 py-2 rounded-lg transition-colors"
+              >
+                + New Pack
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Custom packs first */}
+              {customPacksAsStarter.map((pack) => (
+                <StarterPackCard
+                  key={pack.id}
+                  pack={pack}
+                  installedSet={installedSet}
+                  onApply={handleApplyPack}
+                  isCustom={true}
+                  onDelete={() => handleDeletePack(pack.id)}
+                />
+              ))}
+              {/* Built-in packs */}
+              {STARTER_PACKS.map((pack) => (
+                <StarterPackCard
+                  key={pack.id}
+                  pack={pack}
+                  installedSet={installedSet}
+                  onApply={handleApplyPack}
+                />
+              ))}
+            </div>
+          </>
         )}
       </main>
+
+      {/* Create pack modal */}
+      {showCreateModal && (
+        <PackCreateModal
+          installedSet={installedSet}
+          onSave={handleCreatePack}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
     </div>
   )
 }
