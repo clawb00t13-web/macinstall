@@ -56,6 +56,13 @@ class MackupService: ObservableObject {
         "whatsapp":           "whatsapp",
     ]
 
+    /// Plist files in staging dir that need `defaults import` instead of symlinks.
+    /// Maps relative path inside staging → defaults domain.
+    private static let plistDomains: [String: String] = [
+        "Mackup/Library/Preferences/com.knollsoft.Rectangle.plist": "com.knollsoft.Rectangle",
+        "Mackup/Library/Preferences/com.googlecode.iterm2.plist":   "com.googlecode.iterm2",
+    ]
+
     // MARK: - Public API
 
     /// Backup configs for installed catalog apps → tar.gz → Supabase.
@@ -149,6 +156,11 @@ class MackupService: ObservableObject {
                 return
             }
 
+            // Mackup symlinks don't work for cfprefsd-managed plists (Rectangle, etc.)
+            // Directly import plists from the staging dir as a fallback.
+            statusMessage = "Applying preference plists..."
+            await applyPreferencePlists()
+
             statusMessage = "Configs restored from Supabase"
             print("[Mackup] Restored configs from Supabase (\(sizeMB) MB)")
         } catch {
@@ -177,6 +189,35 @@ class MackupService: ObservableObject {
 
         try? cfg.write(toFile: mackupCfgPath, atomically: true, encoding: .utf8)
         print("[Mackup] Config: \(apps.count) apps → \(apps.joined(separator: ", "))")
+    }
+
+    /// For cfprefsd-managed plists, `defaults import` writes directly into the preference
+    /// daemon's cache, bypassing the symlink problem. Then kill cfprefsd to force a re-read.
+    private func applyPreferencePlists() async {
+        var applied = 0
+        for (relativePath, domain) in Self.plistDomains {
+            let fullPath = (stagingDir as NSString).appendingPathComponent(relativePath)
+            guard FileManager.default.fileExists(atPath: fullPath) else { continue }
+
+            // Kill the app first so it doesn't overwrite our import
+            let appName = domain.components(separatedBy: ".").last ?? ""
+            _ = await shell("/usr/bin/killall", args: [appName])
+
+            // defaults import writes the plist into cfprefsd directly
+            let ok = await shell("/usr/bin/defaults", args: ["import", domain, fullPath])
+            if ok {
+                applied += 1
+                print("[Mackup] defaults import \(domain) ← \(relativePath)")
+            } else {
+                print("[Mackup] defaults import FAILED for \(domain)")
+            }
+        }
+
+        if applied > 0 {
+            // Restart cfprefsd so all apps pick up the new prefs
+            _ = await shell("/usr/bin/killall", args: ["cfprefsd"])
+            print("[Mackup] Killed cfprefsd — \(applied) plists imported")
+        }
     }
 
     // MARK: - Staging Dir
