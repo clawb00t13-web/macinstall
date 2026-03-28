@@ -72,6 +72,7 @@ class MackupService: ObservableObject {
         }
 
         statusMessage = "Configuring Mackup for \(mackupApps.count) apps..."
+        cleanStagingDir()
         writeMackupConfig(apps: mackupApps)
 
         statusMessage = "Running mackup backup..."
@@ -176,6 +177,15 @@ class MackupService: ObservableObject {
 
         try? cfg.write(toFile: mackupCfgPath, atomically: true, encoding: .utf8)
         print("[Mackup] Config: \(apps.count) apps → \(apps.joined(separator: ", "))")
+    }
+
+    // MARK: - Staging Dir
+
+    /// Wipe the staging dir so stale files from previous backups don't bloat the archive.
+    private func cleanStagingDir() {
+        let fm = FileManager.default
+        try? fm.removeItem(atPath: stagingDir)
+        try? fm.createDirectory(atPath: stagingDir, withIntermediateDirectories: true)
     }
 
     // MARK: - Tar/Gzip
